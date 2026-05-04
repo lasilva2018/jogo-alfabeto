@@ -326,6 +326,25 @@
       });
     }
 
+    function tocarErro() {
+      const ctx = getAudio();
+      const agora = ctx.currentTime;
+      const notas = [392.00, 261.63];
+      notas.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, agora + i * 0.2);
+        gain.gain.linearRampToValueAtTime(0.18, agora + i * 0.2 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, agora + i * 0.2 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(agora + i * 0.2);
+        osc.stop(agora + i * 0.2 + 0.25);
+      });
+    }
+
     function falar(texto) {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
@@ -471,7 +490,7 @@
       montarEscolhas();
       bloqueado = false;
 
-      setTimeout(() => falar(SONS[letraAtual] + '... ' + palavraAtual), 250);
+      setTimeout(() => falar(SONS[letraAtual]), 250);
     }
 
     function proximaRodada() {
@@ -484,12 +503,6 @@
       if (modo === 'letras') return 'Letra ' + letraAtual + '! Muito bem!';
       if (modo === 'som')    return SONS[letraAtual] + '! É a letra ' + letraAtual + '!';
       return palavraAtual + '! Começa com a letra ' + letraAtual + '.';
-    }
-
-    function falaErro() {
-      if (modo === 'letras') return 'Errado! Tente a letra ' + letraAtual;
-      if (modo === 'som')    return 'O som ' + SONS[letraAtual] + ' é da letra ' + letraAtual + '.';
-      return palavraAtual + ' escreve com ' + letraAtual + '.';
     }
 
     function checar(letra, x, y) {
@@ -517,7 +530,7 @@
         elErros.textContent = erros;
         if (elAtual) elAtual.classList.add('errou');
         document.body.classList.add('errado');
-        falar(falaErro());
+        tocarErro();
         setTimeout(() => {
           document.body.classList.remove('errado');
           if (elAtual) elAtual.classList.remove('errou');
@@ -554,7 +567,7 @@
       getAudio();
       if (bloqueado) return;
       if (modo === 'letras')      falar('Que letra é essa? ' + letraAtual);
-      else if (modo === 'som')    falar(SONS[letraAtual] + '... ' + palavraAtual);
+      else if (modo === 'som')    falar(letraAtual + ' de ' + palavraAtual);
       else                         falar(palavraAtual);
     });
 
