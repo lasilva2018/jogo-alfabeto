@@ -240,6 +240,7 @@
     <div class="modos" role="tablist">
       <button class="modo-btn ativo" data-modo="letras" type="button">🔤 Letras</button>
       <button class="modo-btn" data-modo="objetos" type="button">🍎 Objetos</button>
+      <button class="modo-btn" data-modo="som" type="button">🔊 Som</button>
     </div>
   </div>
 
@@ -277,6 +278,15 @@
       Z: [['Zebra','🦓']]
     };
     const LETRAS_OBJETOS = Object.keys(PALAVRAS);
+
+    const SONS = {
+      A: 'ááá',  B: 'bê',   C: 'cê',   D: 'dê',
+      E: 'êêê',  F: 'fff',  G: 'guê',  H: 'agá',
+      I: 'iii',  J: 'jjj',  L: 'lll',  M: 'mmm',
+      N: 'nnn',  O: 'óóó',  P: 'pê',   Q: 'quê',
+      R: 'rrr',  S: 'sss',  T: 'tê',   U: 'úúú',
+      V: 'vvv',  X: 'xis',  Z: 'zzz'
+    };
 
     let modo = localStorage.getItem('modo') || 'letras';
     let letraAtual = '';
@@ -434,22 +444,51 @@
       elInput.appendChild(grid);
     }
 
+    function montarSom() {
+      letraAtual = escolherDe(LETRAS_OBJETOS, letraAtual);
+      const opcoes = PALAVRAS[letraAtual];
+      const escolhida = opcoes[Math.floor(Math.random() * opcoes.length)];
+      palavraAtual = escolhida[0];
+
+      elPalco.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'objeto';
+      wrap.id = 'som';
+
+      const elIcone = document.createElement('div');
+      elIcone.className = 'objeto-emoji';
+      elIcone.textContent = '🔊';
+
+      const elDica = document.createElement('div');
+      elDica.className = 'objeto-palavra';
+      elDica.style.fontSize = 'clamp(1.4rem, 5vmin, 2.6rem)';
+      elDica.textContent = 'Qual é a letra?';
+
+      wrap.appendChild(elIcone);
+      wrap.appendChild(elDica);
+      elPalco.appendChild(wrap);
+
+      montarEscolhas();
+      bloqueado = false;
+
+      setTimeout(() => falar(SONS[letraAtual] + '... ' + palavraAtual), 250);
+    }
+
     function proximaRodada() {
       if (modo === 'letras') montarLetra();
-      else montarObjeto();
+      else if (modo === 'objetos') montarObjeto();
+      else montarSom();
     }
 
     function falaAcerto() {
-      if (modo === 'letras') {
-        return 'Letra ' + letraAtual + '! Muito bem!';
-      }
+      if (modo === 'letras') return 'Letra ' + letraAtual + '! Muito bem!';
+      if (modo === 'som')    return SONS[letraAtual] + '! É a letra ' + letraAtual + '!';
       return palavraAtual + '! Começa com a letra ' + letraAtual + '.';
     }
 
     function falaErro() {
-      if (modo === 'letras') {
-        return 'Errado! Tente a letra ' + letraAtual;
-      }
+      if (modo === 'letras') return 'Errado! Tente a letra ' + letraAtual;
+      if (modo === 'som')    return 'O som ' + SONS[letraAtual] + ' é da letra ' + letraAtual + '.';
       return palavraAtual + ' escreve com ' + letraAtual + '.';
     }
 
@@ -514,8 +553,9 @@
     elPalco.addEventListener('click', () => {
       getAudio();
       if (bloqueado) return;
-      if (modo === 'letras') falar('Miguel, que letra é essa? ' + letraAtual);
-      else falar(palavraAtual);
+      if (modo === 'letras')      falar('Que letra é essa? ' + letraAtual);
+      else if (modo === 'som')    falar(SONS[letraAtual] + '... ' + palavraAtual);
+      else                         falar(palavraAtual);
     });
 
     if (modo === 'letras') montarTeclado();
