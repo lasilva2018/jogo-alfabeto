@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Jogo do Alfabeto</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', system-ui, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #fff5cc 0%, #ffd6e8 50%, #c8e7ff 100%);
+      transition: background 0.3s;
+    }
+
+    body.correto {
+      background: linear-gradient(135deg, #b8f5b8 0%, #7dd87d 100%);
+    }
+
+    body.errado {
+      background: linear-gradient(135deg, #ffb3b3 0%, #ff6b6b 100%);
+    }
+
+    .placar {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      background: rgba(255, 255, 255, 0.6);
+      border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .placar span { display: inline-block; }
+
+    .palco {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .letra {
+      font-size: clamp(12rem, 60vmin, 30rem);
+      font-weight: 900;
+      color: #ff4081;
+      text-shadow:
+        4px 4px 0 #fff,
+        8px 8px 0 rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s, color 0.2s;
+      animation: pulsar 2s ease-in-out infinite;
+    }
+
+    .letra.acertou {
+      animation: comemorar 0.6s ease-out;
+      color: #2e7d32;
+    }
+
+    .letra.errou {
+      animation: tremer 0.5s ease-out;
+      color: #c62828;
+    }
+
+    @keyframes pulsar {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes comemorar {
+      0% { transform: scale(1) rotate(0); }
+      25% { transform: scale(1.4) rotate(-10deg); }
+      50% { transform: scale(1.4) rotate(10deg); }
+      75% { transform: scale(1.4) rotate(-5deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    @keyframes tremer {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-20px); }
+      40% { transform: translateX(20px); }
+      60% { transform: translateX(-15px); }
+      80% { transform: translateX(15px); }
+    }
+
+    .teclado {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .tecla {
+      aspect-ratio: 1;
+      font-size: clamp(1.2rem, 4vmin, 2.5rem);
+      font-weight: bold;
+      border: 3px solid #fff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+      color: #333;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+      transition: all 0.1s;
+      font-family: inherit;
+    }
+
+    .tecla:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .estrelas {
+      position: absolute;
+      pointer-events: none;
+      font-size: 4rem;
+      animation: subir 1.2s ease-out forwards;
+      z-index: 100;
+    }
+
+    @keyframes subir {
+      0% { transform: translateY(0) scale(0.5); opacity: 1; }
+      100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+    }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .placar { font-size: 1rem; padding: 6px; }
+      .teclado { grid-template-columns: repeat(13, 1fr); padding: 6px; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="placar">
+    <span>✅ Acertos: <span id="acertos">0</span></span>
+    <span>❌ Erros: <span id="erros">0</span></span>
+  </div>
+
+  <div class="palco" id="palco">
+    <div class="letra" id="letra">A</div>
+  </div>
+
+  <div class="teclado" id="teclado"></div>
+
+  <script>
+    const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const CORES = ['#ff4081', '#2196f3', '#ff9800', '#9c27b0', '#4caf50', '#f44336', '#00bcd4', '#ff5722'];
+
+    let letraAtual = '';
+    let acertos = 0;
+    let erros = 0;
+    let bloqueado = false;
+
+    const elLetra = document.getElementById('letra');
+    const elAcertos = document.getElementById('acertos');
+    const elErros = document.getElementById('erros');
+    const elTeclado = document.getElementById('teclado');
+    const elPalco = document.getElementById('palco');
+
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function tocarAcerto() {
+      const ctx = getAudio();
+      const agora = ctx.currentTime;
+      const notas = [523.25, 659.25, 783.99, 1046.50];
+      notas.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, agora + i * 0.1);
+        gain.gain.linearRampToValueAtTime(0.3, agora + i * 0.1 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, agora + i * 0.1 + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(agora + i * 0.1);
+        osc.stop(agora + i * 0.1 + 0.3);
+      });
+    }
+
+    function falar(texto) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const fala = new SpeechSynthesisUtterance(texto);
+      fala.lang = 'pt-BR';
+      fala.rate = 0.9;
+      fala.pitch = 1;
+      fala.volume = 1;
+      window.speechSynthesis.speak(fala);
+    }
+
+    function novaLetra() {
+      const anterior = letraAtual;
+      do {
+        letraAtual = ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
+      } while (letraAtual === anterior);
+      elLetra.textContent = letraAtual;
+      elLetra.style.color = CORES[Math.floor(Math.random() * CORES.length)];
+      elLetra.className = 'letra';
+      bloqueado = false;
+    }
+
+    function mostrarEstrelas(x, y) {
+      const estrela = document.createElement('div');
+      estrela.className = 'estrelas';
+      estrela.textContent = '⭐🎉⭐';
+      estrela.style.left = (x - 100) + 'px';
+      estrela.style.top = y + 'px';
+      document.body.appendChild(estrela);
+      setTimeout(() => estrela.remove(), 1200);
+    }
+
+    function checar(letra, x, y) {
+      if (bloqueado) return;
+      letra = letra.toUpperCase();
+      if (!ALFABETO.includes(letra)) return;
+
+      bloqueado = true;
+
+      if (letra === letraAtual) {
+        acertos++;
+        elAcertos.textContent = acertos;
+        elLetra.classList.add('acertou');
+        document.body.classList.add('correto');
+        tocarAcerto();
+        if (x !== undefined) mostrarEstrelas(x, y);
+        falar('Acertou, Miguel! Muito bem!');
+        setTimeout(() => {
+          document.body.classList.remove('correto');
+          novaLetra();
+        }, 1300);
+      } else {
+        erros++;
+        elErros.textContent = erros;
+        elLetra.classList.add('errou');
+        document.body.classList.add('errado');
+        falar('Errado, Miguel! Tente a letra ' + letraAtual);
+        setTimeout(() => {
+          document.body.classList.remove('errado');
+          elLetra.classList.remove('errou');
+          bloqueado = false;
+        }, 1500);
+      }
+    }
+
+    function montarTeclado() {
+      ALFABETO.forEach(letra => {
+        const btn = document.createElement('button');
+        btn.className = 'tecla';
+        btn.textContent = letra;
+        btn.addEventListener('click', (e) => {
+          getAudio();
+          const rect = btn.getBoundingClientRect();
+          checar(letra, rect.left + rect.width / 2, rect.top);
+        });
+        elTeclado.appendChild(btn);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key.length === 1) {
+        getAudio();
+        checar(e.key, window.innerWidth / 2, window.innerHeight / 2);
+      }
+    });
+
+    elPalco.addEventListener('click', () => {
+      getAudio();
+      if (!bloqueado) falar('Miguel, que letra é essa? ' + letraAtual);
+    });
+
+    montarTeclado();
+    novaLetra();
+
+    window.addEventListener('load', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+      }
+    });
+  </script>
+</body>
+</html>
