@@ -38,26 +38,54 @@
       touch-action: manipulation;
     }
 
-    body.correto {
-      background: linear-gradient(135deg, #b8f5b8 0%, #7dd87d 100%);
-    }
+    body.correto { background: linear-gradient(135deg, #b8f5b8 0%, #7dd87d 100%); }
+    body.errado  { background: linear-gradient(135deg, #ffb3b3 0%, #ff6b6b 100%); }
 
-    body.errado {
-      background: linear-gradient(135deg, #ffb3b3 0%, #ff6b6b 100%);
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.6);
+      border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+      flex-wrap: wrap;
     }
 
     .placar {
       display: flex;
-      justify-content: space-around;
-      padding: 12px;
-      font-size: 1.5rem;
+      gap: 18px;
+      font-size: 1.25rem;
       font-weight: bold;
       color: #333;
-      background: rgba(255, 255, 255, 0.6);
-      border-bottom: 3px solid rgba(0, 0, 0, 0.1);
     }
 
-    .placar span { display: inline-block; }
+    .modos {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 999px;
+      padding: 4px;
+    }
+
+    .modo-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: inherit;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modo-btn.ativo {
+      background: #fff;
+      color: #ff4081;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
 
     .palco {
       flex: 1;
@@ -65,34 +93,57 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      padding: 12px;
+      min-height: 0;
     }
 
     .letra {
-      font-size: clamp(12rem, 60vmin, 30rem);
+      font-size: clamp(8rem, 50vmin, 26rem);
       font-weight: 900;
       color: #ff4081;
-      text-shadow:
-        4px 4px 0 #fff,
-        8px 8px 0 rgba(0, 0, 0, 0.15);
+      text-shadow: 4px 4px 0 #fff, 8px 8px 0 rgba(0, 0, 0, 0.15);
       transition: transform 0.2s, color 0.2s;
+      animation: pulsar 2s ease-in-out infinite;
+      line-height: 1;
+    }
+
+    .objeto {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
       animation: pulsar 2s ease-in-out infinite;
     }
 
-    .letra.acertou {
-      animation: comemorar 0.6s ease-out;
-      color: #2e7d32;
+    .objeto-emoji {
+      font-size: clamp(7rem, 38vmin, 18rem);
+      line-height: 1;
+      filter: drop-shadow(4px 6px 0 rgba(0, 0, 0, 0.15));
     }
 
-    .letra.errou {
-      animation: tremer 0.5s ease-out;
-      color: #c62828;
+    .objeto-palavra {
+      font-size: clamp(2rem, 7vmin, 4.5rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #333;
+      text-shadow: 2px 2px 0 #fff;
+      text-transform: uppercase;
     }
+
+    .objeto-palavra .inicial {
+      color: #ff4081;
+      font-size: 1.2em;
+    }
+
+    .acertou { animation: comemorar 0.6s ease-out; }
+    .errou   { animation: tremer 0.5s ease-out; }
+    .letra.acertou  { color: #2e7d32; }
+    .letra.errou    { color: #c62828; }
 
     @keyframes pulsar {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
-
     @keyframes comemorar {
       0% { transform: scale(1) rotate(0); }
       25% { transform: scale(1.4) rotate(-10deg); }
@@ -100,7 +151,6 @@
       75% { transform: scale(1.4) rotate(-5deg); }
       100% { transform: scale(1) rotate(0); }
     }
-
     @keyframes tremer {
       0%, 100% { transform: translateX(0); }
       20% { transform: translateX(-20px); }
@@ -109,12 +159,20 @@
       80% { transform: translateX(15px); }
     }
 
+    .input-area { background: rgba(255, 255, 255, 0.4); padding: 12px; }
+
     .teclado {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 8px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .escolhas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .tecla {
@@ -127,11 +185,26 @@
       color: #333;
       cursor: pointer;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-      transition: all 0.1s;
+      transition: transform 0.1s, box-shadow 0.1s;
       font-family: inherit;
     }
 
-    .tecla:active {
+    .escolha {
+      aspect-ratio: 1;
+      max-height: 22vh;
+      font-size: clamp(2.5rem, 10vmin, 6rem);
+      font-weight: 900;
+      border: 4px solid #fff;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
+      color: #ff4081;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+      transition: transform 0.1s, box-shadow 0.1s;
+      font-family: inherit;
+    }
+
+    .tecla:active, .escolha:active {
       transform: translateY(2px);
       box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
     }
@@ -150,37 +223,73 @@
     }
 
     @media (orientation: landscape) and (max-height: 500px) {
-      .placar { font-size: 1rem; padding: 6px; }
-      .teclado { grid-template-columns: repeat(13, 1fr); padding: 6px; gap: 4px; }
+      .placar { font-size: 0.9rem; gap: 10px; }
+      .modo-btn { padding: 6px 12px; font-size: 0.9rem; }
+      .teclado { grid-template-columns: repeat(13, 1fr); gap: 4px; }
+      .input-area { padding: 6px; }
+      .escolha { max-height: 18vh; }
     }
   </style>
 </head>
 <body>
-  <div class="placar">
-    <span>✅ Acertos: <span id="acertos">0</span></span>
-    <span>❌ Erros: <span id="erros">0</span></span>
+  <div class="topo">
+    <div class="placar">
+      <span>✅ <span id="acertos">0</span></span>
+      <span>❌ <span id="erros">0</span></span>
+    </div>
+    <div class="modos" role="tablist">
+      <button class="modo-btn ativo" data-modo="letras" type="button">🔤 Letras</button>
+      <button class="modo-btn" data-modo="objetos" type="button">🍎 Objetos</button>
+    </div>
   </div>
 
-  <div class="palco" id="palco">
-    <div class="letra" id="letra">A</div>
-  </div>
+  <div class="palco" id="palco"></div>
 
-  <div class="teclado" id="teclado"></div>
+  <div class="input-area" id="inputArea"></div>
 
   <script>
     const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     const CORES = ['#ff4081', '#2196f3', '#ff9800', '#9c27b0', '#4caf50', '#f44336', '#00bcd4', '#ff5722'];
 
+    const PALAVRAS = {
+      A: [['Abacaxi','🍍'], ['Abelha','🐝'], ['Avião','✈️'], ['Abacate','🥑']],
+      B: [['Bola','⚽'], ['Banana','🍌'], ['Bolo','🎂'], ['Borboleta','🦋']],
+      C: [['Cachorro','🐶'], ['Cavalo','🐴'], ['Casa','🏠'], ['Cobra','🐍']],
+      D: [['Dado','🎲'], ['Dinossauro','🦖'], ['Dragão','🐉']],
+      E: [['Elefante','🐘'], ['Estrela','⭐'], ['Escola','🏫']],
+      F: [['Foca','🦭'], ['Flor','🌸'], ['Foguete','🚀']],
+      G: [['Gato','🐱'], ['Galinha','🐔'], ['Girafa','🦒']],
+      H: [['Hipopótamo','🦛'], ['Hambúrguer','🍔']],
+      I: [['Iguana','🦎'], ['Igreja','⛪']],
+      J: [['Jacaré','🐊'], ['Joaninha','🐞']],
+      L: [['Leão','🦁'], ['Lua','🌙'], ['Livro','📖']],
+      M: [['Maçã','🍎'], ['Macaco','🐵'], ['Morango','🍓']],
+      N: [['Navio','🚢'], ['Nuvem','☁️']],
+      O: [['Ovo','🥚'], ['Onça','🐆'], ['Óculos','👓']],
+      P: [['Pato','🦆'], ['Pizza','🍕'], ['Porco','🐷'], ['Peixe','🐟']],
+      Q: [['Queijo','🧀']],
+      R: [['Rato','🐀'], ['Rosa','🌹'], ['Robô','🤖']],
+      S: [['Sol','☀️'], ['Sapo','🐸'], ['Sorvete','🍦']],
+      T: [['Tigre','🐯'], ['Tartaruga','🐢'], ['Trator','🚜']],
+      U: [['Urso','🐻'], ['Uva','🍇']],
+      V: [['Vaca','🐄'], ['Vela','🕯️']],
+      X: [['Xícara','☕']],
+      Z: [['Zebra','🦓']]
+    };
+    const LETRAS_OBJETOS = Object.keys(PALAVRAS);
+
+    let modo = localStorage.getItem('modo') || 'letras';
     let letraAtual = '';
+    let palavraAtual = '';
     let acertos = 0;
     let erros = 0;
     let bloqueado = false;
 
-    const elLetra = document.getElementById('letra');
-    const elAcertos = document.getElementById('acertos');
-    const elErros = document.getElementById('erros');
-    const elTeclado = document.getElementById('teclado');
-    const elPalco = document.getElementById('palco');
+    const elPalco    = document.getElementById('palco');
+    const elInput    = document.getElementById('inputArea');
+    const elAcertos  = document.getElementById('acertos');
+    const elErros    = document.getElementById('erros');
+    const elsModo    = document.querySelectorAll('.modo-btn');
 
     let audioCtx = null;
     function getAudio() {
@@ -218,17 +327,6 @@
       window.speechSynthesis.speak(fala);
     }
 
-    function novaLetra() {
-      const anterior = letraAtual;
-      do {
-        letraAtual = ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
-      } while (letraAtual === anterior);
-      elLetra.textContent = letraAtual;
-      elLetra.style.color = CORES[Math.floor(Math.random() * CORES.length)];
-      elLetra.className = 'letra';
-      bloqueado = false;
-    }
-
     function mostrarEstrelas(x, y) {
       const estrela = document.createElement('div');
       estrela.className = 'estrelas';
@@ -239,52 +337,172 @@
       setTimeout(() => estrela.remove(), 1200);
     }
 
-    function checar(letra, x, y) {
-      if (bloqueado) return;
-      letra = letra.toUpperCase();
-      if (!ALFABETO.includes(letra)) return;
-
-      bloqueado = true;
-
-      if (letra === letraAtual) {
-        acertos++;
-        elAcertos.textContent = acertos;
-        elLetra.classList.add('acertou');
-        document.body.classList.add('correto');
-        tocarAcerto();
-        if (x !== undefined) mostrarEstrelas(x, y);
-        falar('Letra ' + letraAtual + '! Muito bem, Miguel!');
-        setTimeout(() => {
-          document.body.classList.remove('correto');
-          novaLetra();
-        }, 1300);
-      } else {
-        erros++;
-        elErros.textContent = erros;
-        elLetra.classList.add('errou');
-        document.body.classList.add('errado');
-        falar('Errado, Miguel! Tente a letra ' + letraAtual);
-        setTimeout(() => {
-          document.body.classList.remove('errado');
-          elLetra.classList.remove('errou');
-          bloqueado = false;
-        }, 1500);
-      }
+    function escolherDe(arr, exceto) {
+      let v;
+      do { v = arr[Math.floor(Math.random() * arr.length)]; } while (v === exceto && arr.length > 1);
+      return v;
     }
 
-    function montarTeclado() {
-      ALFABETO.forEach(letra => {
+    function montarLetra() {
+      letraAtual = escolherDe(ALFABETO, letraAtual);
+      palavraAtual = '';
+      elPalco.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'letra';
+      div.id = 'letra';
+      div.textContent = letraAtual;
+      div.style.color = CORES[Math.floor(Math.random() * CORES.length)];
+      elPalco.appendChild(div);
+      bloqueado = false;
+    }
+
+    function montarObjeto() {
+      letraAtual = escolherDe(LETRAS_OBJETOS, letraAtual);
+      const opcoes = PALAVRAS[letraAtual];
+      const escolhida = opcoes[Math.floor(Math.random() * opcoes.length)];
+      palavraAtual = escolhida[0];
+      const emoji = escolhida[1];
+
+      elPalco.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'objeto';
+      wrap.id = 'objeto';
+
+      const elEmoji = document.createElement('div');
+      elEmoji.className = 'objeto-emoji';
+      elEmoji.textContent = emoji;
+
+      const elPalavra = document.createElement('div');
+      elPalavra.className = 'objeto-palavra';
+      const inicial = document.createElement('span');
+      inicial.className = 'inicial';
+      inicial.textContent = palavraAtual.charAt(0).toUpperCase();
+      elPalavra.appendChild(inicial);
+      elPalavra.appendChild(document.createTextNode(palavraAtual.slice(1).toUpperCase()));
+
+      wrap.appendChild(elEmoji);
+      wrap.appendChild(elPalavra);
+      elPalco.appendChild(wrap);
+
+      montarEscolhas();
+      bloqueado = false;
+    }
+
+    function montarEscolhas() {
+      elInput.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'escolhas';
+
+      const distratoras = new Set();
+      while (distratoras.size < 3) {
+        const l = ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
+        if (l !== letraAtual) distratoras.add(l);
+      }
+      const opcoes = [letraAtual, ...distratoras].sort(() => Math.random() - 0.5);
+
+      opcoes.forEach((letra, i) => {
         const btn = document.createElement('button');
-        btn.className = 'tecla';
+        btn.className = 'escolha';
         btn.textContent = letra;
-        btn.addEventListener('click', (e) => {
+        btn.style.color = CORES[i % CORES.length];
+        btn.addEventListener('click', () => {
           getAudio();
           const rect = btn.getBoundingClientRect();
           checar(letra, rect.left + rect.width / 2, rect.top);
         });
-        elTeclado.appendChild(btn);
+        grid.appendChild(btn);
       });
+
+      elInput.appendChild(grid);
     }
+
+    function montarTeclado() {
+      elInput.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'teclado';
+      ALFABETO.forEach(letra => {
+        const btn = document.createElement('button');
+        btn.className = 'tecla';
+        btn.textContent = letra;
+        btn.addEventListener('click', () => {
+          getAudio();
+          const rect = btn.getBoundingClientRect();
+          checar(letra, rect.left + rect.width / 2, rect.top);
+        });
+        grid.appendChild(btn);
+      });
+      elInput.appendChild(grid);
+    }
+
+    function proximaRodada() {
+      if (modo === 'letras') montarLetra();
+      else montarObjeto();
+    }
+
+    function falaAcerto() {
+      if (modo === 'letras') {
+        return 'Letra ' + letraAtual + '! Muito bem, Miguel!';
+      }
+      return palavraAtual + '! Começa com a letra ' + letraAtual + '. Muito bem, Miguel!';
+    }
+
+    function falaErro() {
+      if (modo === 'letras') {
+        return 'Errado, Miguel! Tente a letra ' + letraAtual;
+      }
+      return palavraAtual + ' escreve com ' + letraAtual + ', Miguel.';
+    }
+
+    function checar(letra, x, y) {
+      if (bloqueado) return;
+      letra = letra.toUpperCase();
+      if (!ALFABETO.includes(letra)) return;
+      bloqueado = true;
+
+      const elAtual = document.getElementById('letra') || document.getElementById('objeto');
+
+      if (letra === letraAtual) {
+        acertos++;
+        elAcertos.textContent = acertos;
+        if (elAtual) elAtual.classList.add('acertou');
+        document.body.classList.add('correto');
+        tocarAcerto();
+        if (x !== undefined) mostrarEstrelas(x, y);
+        falar(falaAcerto());
+        setTimeout(() => {
+          document.body.classList.remove('correto');
+          proximaRodada();
+        }, 1500);
+      } else {
+        erros++;
+        elErros.textContent = erros;
+        if (elAtual) elAtual.classList.add('errou');
+        document.body.classList.add('errado');
+        falar(falaErro());
+        setTimeout(() => {
+          document.body.classList.remove('errado');
+          if (elAtual) elAtual.classList.remove('errou');
+          bloqueado = false;
+        }, 1800);
+      }
+    }
+
+    function trocarModo(novo) {
+      if (novo === modo) return;
+      modo = novo;
+      localStorage.setItem('modo', modo);
+      elsModo.forEach(b => b.classList.toggle('ativo', b.dataset.modo === modo));
+      letraAtual = '';
+      if (modo === 'letras') montarTeclado();
+      proximaRodada();
+    }
+
+    elsModo.forEach(b => {
+      b.addEventListener('click', () => {
+        getAudio();
+        trocarModo(b.dataset.modo);
+      });
+    });
 
     document.addEventListener('keydown', (e) => {
       if (e.key.length === 1) {
@@ -295,11 +513,14 @@
 
     elPalco.addEventListener('click', () => {
       getAudio();
-      if (!bloqueado) falar('Miguel, que letra é essa? ' + letraAtual);
+      if (bloqueado) return;
+      if (modo === 'letras') falar('Miguel, que letra é essa? ' + letraAtual);
+      else falar(palavraAtual);
     });
 
-    montarTeclado();
-    novaLetra();
+    if (modo === 'letras') montarTeclado();
+    proximaRodada();
+    elsModo.forEach(b => b.classList.toggle('ativo', b.dataset.modo === modo));
 
     window.addEventListener('load', () => {
       if ('speechSynthesis' in window) {
