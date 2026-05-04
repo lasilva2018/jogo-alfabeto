@@ -441,16 +441,16 @@
 
     function falaAcerto() {
       if (modo === 'letras') {
-        return 'Letra ' + letraAtual + '! Muito bem, Miguel!';
+        return 'Letra ' + letraAtual + '! Muito bem!';
       }
-      return palavraAtual + '! Começa com a letra ' + letraAtual + '. Muito bem, Miguel!';
+      return palavraAtual + '! Começa com a letra ' + letraAtual + '.';
     }
 
     function falaErro() {
       if (modo === 'letras') {
-        return 'Errado, Miguel! Tente a letra ' + letraAtual;
+        return 'Errado! Tente a letra ' + letraAtual;
       }
-      return palavraAtual + ' escreve com ' + letraAtual + ', Miguel.';
+      return palavraAtual + ' escreve com ' + letraAtual + '.';
     }
 
     function checar(letra, x, y) {
