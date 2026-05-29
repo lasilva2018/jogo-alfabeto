@@ -55,3 +55,17 @@ export const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('') as Letter[]
 
 // Apenas as letras que já temos palavras cadastradas
 export const AVAILABLE_LETTERS = Object.keys(WORD_BANK) as Letter[]
+
+// Helper: pega um exemplo aleatório de uma letra
+export function getRandomExample(letter: Letter): WordExample {
+  const examples = WORD_BANK[letter] || []
+  if (examples.length === 0) return { word: letter, emoji: '🔤' }
+  return examples[Math.floor(Math.random() * examples.length)]
+}
+
+// Pega N letras aleatórias diferentes da atual (para distratores)
+export function getRandomDistractors(current: Letter, count: number): Letter[] {
+  const others = AVAILABLE_LETTERS.filter(l => l !== current)
+  const shuffled = [...others].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, count)
+}
