@@ -75,6 +75,7 @@ export function TouchLetterGame() {
       
       // Dá uma estrelinha
       useChildProfile.getState().addStars(1)
+      useChildProfile.getState().recordLetterPractice(game.currentLetter, true)
       
       await audioManager.playSuccess()
       
@@ -89,6 +90,7 @@ export function TouchLetterGame() {
     } else {
       // Erro - feedback gentil
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
+      useChildProfile.getState().recordLetterPractice(game.currentLetter, false)
       
       await audioManager.playMistake()
 

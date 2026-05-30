@@ -90,6 +90,7 @@ export function CacaLetraGame() {
       if (newFound.size === game.totalToFind) {
         setScore(s => ({ ...s, correct: s.correct + 1 }))
         useChildProfile.getState().addStars(1)
+        useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
         const speakText = `Isso, ${childName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
         await audioManager.speakPhrase(speakText)
@@ -101,6 +102,7 @@ export function CacaLetraGame() {
     } else {
       // Wrong tap - gentle feedback
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
+      useChildProfile.getState().recordLetterPractice(tappedLetter, false)
       setGame(prev => ({ ...prev, lastResult: 'wrong' }))
 
       await audioManager.playMistake()

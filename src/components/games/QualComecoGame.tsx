@@ -65,6 +65,7 @@ export function QualComecoGame() {
 
       // Dá uma estrelinha
       useChildProfile.getState().addStars(1)
+      useChildProfile.getState().recordLetterPractice(game.letter, true)
 
       await audioManager.playSuccess()
 
@@ -76,6 +77,7 @@ export function QualComecoGame() {
       }, 1400)
     } else {
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
+      useChildProfile.getState().recordLetterPractice(game.letter, false)
 
       await audioManager.playMistake()
 

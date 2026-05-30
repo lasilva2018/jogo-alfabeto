@@ -2,11 +2,12 @@ import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
 import { CacaLetraGame } from './games/CacaLetraGame'
 import { RewardsScreen } from './RewardsScreen'
+import { MinhasLetras } from './MinhasLetras'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'rewards'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'rewards' | 'minhas-letras'
 
 export function Home() {
   const { profile } = useChildProfile()
@@ -71,6 +72,10 @@ export function Home() {
 
   if (currentScreen === 'rewards') {
     return <RewardsScreen onBack={() => setCurrentScreen('home')} />
+  }
+
+  if (currentScreen === 'minhas-letras') {
+    return <MinhasLetras onBack={() => setCurrentScreen('home')} />
   }
 
   // Home / Game Selector
@@ -141,6 +146,20 @@ export function Home() {
               <div className="text-lg text-gray-600 mt-1">
                 {stars} estrelinha{stars !== 1 ? 's' : ''} brilhando
               </div>
+            </div>
+          </div>
+        </button>
+
+        {/* Minhas Letras Button */}
+        <button
+          onClick={() => setCurrentScreen('minhas-letras')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-blue-200 active:scale-[0.985] transition-transform text-left"
+        >
+          <div className="flex items-center gap-5">
+            <div className="text-6xl">📚</div>
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-blue-600">Minhas Letras</div>
+              <div className="text-lg text-gray-600 mt-1">Veja seu progresso!</div>
             </div>
           </div>
         </button>
