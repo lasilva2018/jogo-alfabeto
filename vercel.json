@@ -3,8 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3.2.0"
-    }
+    "api/**/*.ts": {}
   }
 }
