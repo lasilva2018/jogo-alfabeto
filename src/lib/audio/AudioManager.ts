@@ -30,6 +30,7 @@ class AudioManager {
   }
 
   async speakPhrase(phrase: string) {
+    console.log('%c[AudioManager] speakPhrase chamado', 'color:#3b82f6', { phrase: phrase.substring(0, 100) });
     await this.provider.speak(phrase, { rate: 0.95, pitch: 1.02 })
   }
 

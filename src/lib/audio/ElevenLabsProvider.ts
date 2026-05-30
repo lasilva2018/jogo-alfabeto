@@ -37,6 +37,8 @@ export class ElevenLabsProvider implements AudioProvider {
     const audio = this.getAudioElement();
     const voiceType = opts?.voice || 'default';
 
+    console.log('%c[ElevenLabs] Tentando falar via ElevenLabs...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
+
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
@@ -48,9 +50,13 @@ export class ElevenLabsProvider implements AudioProvider {
       });
 
       if (!response.ok) {
-        console.warn('ElevenLabs TTS failed, falling back to browser speech');
+        const errorBody = await response.text().catch(() => 'sem corpo');
+        console.error('%c[ElevenLabs] Falha na API (status ' + response.status + ')', 'color:#ef4444', errorBody);
+        console.warn('%c[ElevenLabs] Caindo para voz do navegador (fallback)', 'color:#f59e0b');
         return this.fallbackToBrowserSpeech(text);
       }
+
+      console.log('%c[ElevenLabs] Resposta OK da API, tocando áudio...', 'color:#22c55e');
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -72,13 +78,19 @@ export class ElevenLabsProvider implements AudioProvider {
         });
       });
     } catch (error) {
-      console.warn('ElevenLabs request failed, using browser fallback', error);
+      console.error('%c[ElevenLabs] Erro no fetch para /api/tts', 'color:#ef4444', error);
+      console.warn('%c[ElevenLabs] Caindo para voz do navegador (fallback por exceção)', 'color:#f59e0b');
       return this.fallbackToBrowserSpeech(text);
     }
   }
 
   private async fallbackToBrowserSpeech(text: string): Promise<void> {
-    if (!('speechSynthesis' in window)) return;
+    console.log('%c[ElevenLabs] Usando fallback do navegador (SpeechSynthesis)', 'color:#f59e0b');
+
+    if (!('speechSynthesis' in window)) {
+      console.error('%c[ElevenLabs] SpeechSynthesis não disponível neste navegador', 'color:#ef4444');
+      return;
+    }
 
     return new Promise((resolve) => {
       window.speechSynthesis.cancel();

@@ -32,3 +32,4 @@ legacy-original-index.html
 # Build artifacts
 *.tsbuildinfo
 dist/
+.vercel
