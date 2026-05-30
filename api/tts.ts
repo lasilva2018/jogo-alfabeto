@@ -62,8 +62,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // Cache for 1 year (text is deterministic)
 
     return res.status(200).send(Buffer.from(audioBuffer));
-  } catch (error) {
-    console.error('TTS proxy error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    console.error('TTS proxy error:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error?.message || 'Unknown error'
+    });
   }
 }
