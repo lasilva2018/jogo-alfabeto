@@ -6,6 +6,7 @@ export interface ChildProfile {
   name: string
   avatar: string
   createdAt: string
+  stars: number
 }
 
 interface ChildProfileState {
@@ -17,6 +18,7 @@ interface ChildProfileState {
   updateProfile: (updates: Partial<ChildProfile>) => void
   clearProfile: () => void
   completeOnboarding: () => void
+  addStars: (amount: number) => void
 }
 
 export const useChildProfile = create<ChildProfileState>()(
@@ -31,6 +33,7 @@ export const useChildProfile = create<ChildProfileState>()(
           name: name.trim(),
           avatar,
           createdAt: new Date().toISOString(),
+          stars: 0,
         }
         set({
           profile: newProfile,
@@ -53,6 +56,14 @@ export const useChildProfile = create<ChildProfileState>()(
 
       completeOnboarding: () => {
         set({ hasCompletedOnboarding: true })
+      },
+
+      addStars: (amount: number) => {
+        set((state) => ({
+          profile: state.profile 
+            ? { ...state.profile, stars: (state.profile.stars || 0) + amount } 
+            : null,
+        }))
       },
     }),
     {

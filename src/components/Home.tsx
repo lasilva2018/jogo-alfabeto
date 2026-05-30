@@ -1,23 +1,25 @@
 import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
+import { RewardsScreen } from './RewardsScreen'
 import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 
-type Game = 'touch-letter' | 'qual-comeco' | null
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'rewards'
 
 export function Home() {
   const { profile } = useChildProfile()
-  const [currentGame, setCurrentGame] = useState<Game>(null)
+  const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
   const childName = profile?.name || 'amiguinho'
   const avatar = profile?.avatar || '🐘'
+  const stars = profile?.stars || 0
 
-  if (currentGame === 'touch-letter') {
+  if (currentScreen === 'touch-letter') {
     return (
       <div>
         <div className="bg-white/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b">
           <button 
-            onClick={() => setCurrentGame(null)}
+            onClick={() => setCurrentScreen('home')}
             className="text-purple-600 font-medium flex items-center gap-1 text-lg active:opacity-70"
           >
             ← Voltar
@@ -30,12 +32,12 @@ export function Home() {
     )
   }
 
-  if (currentGame === 'qual-comeco') {
+  if (currentScreen === 'qual-comeco') {
     return (
       <div>
         <div className="bg-white/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b">
           <button 
-            onClick={() => setCurrentGame(null)}
+            onClick={() => setCurrentScreen('home')}
             className="text-purple-600 font-medium flex items-center gap-1 text-lg active:opacity-70"
           >
             ← Voltar
@@ -46,6 +48,10 @@ export function Home() {
         <QualComecoGame />
       </div>
     )
+  }
+
+  if (currentScreen === 'rewards') {
+    return <RewardsScreen onBack={() => setCurrentScreen('home')} />
   }
 
   // Home / Game Selector
@@ -60,11 +66,11 @@ export function Home() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center px-6 gap-6 pb-12">
+      <div className="flex-1 flex flex-col justify-center px-6 gap-5 pb-12">
         
         {/* Game 1 */}
         <button
-          onClick={() => setCurrentGame('touch-letter')}
+          onClick={() => setCurrentScreen('touch-letter')}
           className="bg-white rounded-3xl p-6 shadow-lg border-2 border-purple-100 active:scale-[0.985] transition-transform text-left"
         >
           <div className="flex items-center gap-5">
@@ -78,7 +84,7 @@ export function Home() {
 
         {/* Game 2 */}
         <button
-          onClick={() => setCurrentGame('qual-comeco')}
+          onClick={() => setCurrentScreen('qual-comeco')}
           className="bg-white rounded-3xl p-6 shadow-lg border-2 border-orange-100 active:scale-[0.985] transition-transform text-left"
         >
           <div className="flex items-center gap-5">
@@ -90,10 +96,26 @@ export function Home() {
           </div>
         </button>
 
+        {/* Rewards Button */}
+        <button
+          onClick={() => setCurrentScreen('rewards')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-yellow-200 active:scale-[0.985] transition-transform text-left mt-2"
+        >
+          <div className="flex items-center gap-5">
+            <div className="text-6xl">⭐</div>
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-yellow-600">Meu Tesouro</div>
+              <div className="text-lg text-gray-600 mt-1">
+                {stars} estrelinha{stars !== 1 ? 's' : ''} brilhando
+              </div>
+            </div>
+          </div>
+        </button>
+
       </div>
 
       <div className="text-center pb-6 text-xs text-gray-400">
-        Escolha um jogo para começar
+        Quanto mais você brinca, mais estrelinhas ganha!
       </div>
     </div>
   )

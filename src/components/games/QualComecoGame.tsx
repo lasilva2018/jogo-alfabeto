@@ -62,6 +62,9 @@ export function QualComecoGame() {
     if (isCorrect) {
       setScore(s => ({ ...s, correct: s.correct + 1 }))
 
+      // Dá uma estrelinha
+      useChildProfile.getState().addStars(1)
+
       await audioManager.playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.example.word} começa com ${game.letter}! Muito bem!`

@@ -72,6 +72,9 @@ export function TouchLetterGame() {
       // Acerto!
       setScore(s => ({ ...s, correct: s.correct + 1 }))
       
+      // Dá uma estrelinha
+      useChildProfile.getState().addStars(1)
+      
       await audioManager.playSuccess()
       
       // Fala a letra + exemplo de forma carinhosa com o nome da criança
