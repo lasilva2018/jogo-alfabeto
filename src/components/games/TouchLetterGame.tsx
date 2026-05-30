@@ -6,6 +6,7 @@ import {
   getRandomDistractors, 
   WordExample 
 } from '../../data/letters'
+import { useChildProfile } from '../../stores/useChildProfile'
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U'] as const
 
@@ -21,6 +22,9 @@ interface GameState {
 }
 
 export function TouchLetterGame() {
+  const { profile } = useChildProfile()
+  const childName = profile?.name || 'amiguinho'
+
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
 
@@ -70,8 +74,8 @@ export function TouchLetterGame() {
       
       await audioManager.playSuccess()
       
-      // Fala a letra + exemplo
-      const speakText = `${game.currentLetter} de ${game.example.word}!`
+      // Fala a letra + exemplo de forma carinhosa com o nome da criança
+      const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
       await audioManager.speakPhrase(speakText)
 
       // Celebra e avança
@@ -86,7 +90,7 @@ export function TouchLetterGame() {
 
       // Depois de um tempo, revela a resposta certa e libera
       setTimeout(async () => {
-        await audioManager.speakLetter(game.currentLetter, game.example.word)
+        await audioManager.speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -109,10 +113,10 @@ export function TouchLetterGame() {
       {/* Top Bar - Placar + Mascote */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-white/70 backdrop-blur-lg border-b border-white/60">
         <div className="flex items-center gap-3">
-          <div className="text-4xl">🐘</div>
+          <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">Alfafa</div>
-            <div className="text-[10px] text-gray-500 -mt-0.5">o elefantinho</div>
+            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-[10px] text-gray-500 -mt-0.5">com Alfafa</div>
           </div>
         </div>
 
@@ -124,6 +128,19 @@ export function TouchLetterGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
+
+        {/* Small settings button (for now allows resetting profile) */}
+        <button
+          onClick={() => {
+            if (confirm('Quer começar com outro nome?')) {
+              useChildProfile.getState().clearProfile()
+            }
+          }}
+          className="text-xl opacity-50 active:opacity-100 px-2"
+          title="Trocar perfil"
+        >
+          ⚙️
+        </button>
       </div>
 
       {/* Área principal do jogo */}
@@ -207,12 +224,12 @@ export function TouchLetterGame() {
         <div className="h-8 mt-6 text-center">
           {game.lastResult === 'wrong' && !game.isLocked && (
             <p className="text-orange-600 font-medium">
-              Quase! Tenta de novo ✨
+              Quase, {childName}! Tenta de novo ✨
             </p>
           )}
           {game.lastResult === 'correct' && (
             <p className="text-green-600 font-semibold text-lg">
-              Muito bem!
+              Muito bem, {childName}!
             </p>
           )}
         </div>
