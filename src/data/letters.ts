@@ -9,35 +9,117 @@ export interface WordExample {
 // Foco em: concretas, fáceis de pronunciar, do cotidiano brasileiro, fáceis de ilustrar
 
 export const WORD_BANK: Record<Letter, WordExample[]> = {
+  // Vogais
   A: [
     { word: 'Abelha', emoji: '🐝' },
     { word: 'Avião', emoji: '✈️' },
     { word: 'Abacaxi', emoji: '🍍' },
     { word: 'Árvore', emoji: '🌳' },
+    { word: 'Amigo', emoji: '👦' },
   ],
   E: [
     { word: 'Elefante', emoji: '🐘' },
     { word: 'Estrela', emoji: '⭐' },
     { word: 'Escova', emoji: '🪥' },
     { word: 'Espelho', emoji: '🪞' },
+    { word: 'Escada', emoji: '🪜' },
   ],
   I: [
     { word: 'Ioiô', emoji: '🪀' },
     { word: 'Inseto', emoji: '🐛' },
     { word: 'Ilha', emoji: '🏝️' },
+    { word: 'Igreja', emoji: '⛪' },
   ],
   O: [
     { word: 'Ovo', emoji: '🥚' },
     { word: 'Olho', emoji: '👁️' },
     { word: 'Ônibus', emoji: '🚌' },
     { word: 'Ovelha', emoji: '🐑' },
+    { word: 'Onça', emoji: '🐆' },
   ],
   U: [
     { word: 'Urso', emoji: '🐻' },
     { word: 'Uva', emoji: '🍇' },
     { word: 'Unicórnio', emoji: '🦄' },
+    { word: 'Umbigo', emoji: '👶' },
   ],
-  // Futuramente adicionaremos B, P, M, T, etc.
+
+  // Consoantes fáceis (Fase 2)
+  B: [
+    { word: 'Bola', emoji: '⚽' },
+    { word: 'Bolo', emoji: '🎂' },
+    { word: 'Banana', emoji: '🍌' },
+    { word: 'Borboleta', emoji: '🦋' },
+    { word: 'Boneca', emoji: '🪆' },
+  ],
+  P: [
+    { word: 'Pato', emoji: '🦆' },
+    { word: 'Peixe', emoji: '🐟' },
+    { word: 'Pipoca', emoji: '🍿' },
+    { word: 'Pão', emoji: '🍞' },
+    { word: 'Papai', emoji: '👨' },
+  ],
+  M: [
+    { word: 'Macaco', emoji: '🐵' },
+    { word: 'Mamãe', emoji: '👩' },
+    { word: 'Morango', emoji: '🍓' },
+    { word: 'Melancia', emoji: '🍉' },
+    { word: 'Mão', emoji: '✋' },
+  ],
+  T: [
+    { word: 'Tigre', emoji: '🐯' },
+    { word: 'Tartaruga', emoji: '🐢' },
+    { word: 'Trem', emoji: '🚂' },
+    { word: 'Torta', emoji: '🥧' },
+    { word: 'Telefone', emoji: '📱' },
+  ],
+  D: [
+    { word: 'Dado', emoji: '🎲' },
+    { word: 'Dinossauro', emoji: '🦖' },
+    { word: 'Dedo', emoji: '👆' },
+    { word: 'Doce', emoji: '🍬' },
+    { word: 'Dragão', emoji: '🐉' },
+  ],
+
+  // Mais consoantes
+  F: [
+    { word: 'Flor', emoji: '🌸' },
+    { word: 'Foca', emoji: '🦭' },
+    { word: 'Foguete', emoji: '🚀' },
+    { word: 'Formiga', emoji: '🐜' },
+  ],
+  V: [
+    { word: 'Vaca', emoji: '🐄' },
+    { word: 'Vela', emoji: '🕯️' },
+    { word: 'Violão', emoji: '🎸' },
+    { word: 'Vovó', emoji: '👵' },
+  ],
+  G: [
+    { word: 'Gato', emoji: '🐱' },
+    { word: 'Galinha', emoji: '🐔' },
+    { word: 'Girafa', emoji: '🦒' },
+    { word: 'Goiaba', emoji: '🥝' },
+  ],
+  C: [
+    { word: 'Cachorro', emoji: '🐶' },
+    { word: 'Casa', emoji: '🏠' },
+    { word: 'Cavalo', emoji: '🐴' },
+    { word: 'Cama', emoji: '🛏️' },
+  ],
+  L: [
+    { word: 'Leão', emoji: '🦁' },
+    { word: 'Lua', emoji: '🌙' },
+    { word: 'Livro', emoji: '📖' },
+    { word: 'Lápis', emoji: '✏️' },
+    { word: 'Leite', emoji: '🥛' },
+  ],
+  S: [
+    { word: 'Sol', emoji: '☀️' },
+    { word: 'Sapo', emoji: '🐸' },
+    { word: 'Sorvete', emoji: '🍦' },
+    { word: 'Suco', emoji: '🧃' },
+    { word: 'Sapato', emoji: '👟' },
+  ],
 }
 
 // Ordem pedagógica recomendada para crianças de 4 anos (vogais primeiro)
