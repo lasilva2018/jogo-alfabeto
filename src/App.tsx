@@ -1,11 +1,10 @@
 import { useChildProfile } from './stores/useChildProfile'
 import { Onboarding } from './components/onboarding/Onboarding'
-import { TouchLetterGame } from './components/games/TouchLetterGame'
+import { Home } from './components/Home'
 
 function App() {
-  const { profile, hasCompletedOnboarding } = useChildProfile()
+  const { hasCompletedOnboarding, profile } = useChildProfile()
 
-  // Show onboarding if no profile yet
   if (!hasCompletedOnboarding || !profile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50">
@@ -14,10 +13,9 @@ function App() {
     )
   }
 
-  // Main game (for now we go straight to the game)
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50">
-      <TouchLetterGame />
+      <Home />
     </div>
   )
 }

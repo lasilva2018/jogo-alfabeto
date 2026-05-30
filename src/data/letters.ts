@@ -69,3 +69,15 @@ export function getRandomDistractors(current: Letter, count: number): Letter[] {
   const shuffled = [...others].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, count)
 }
+
+// Retorna uma palavra aleatória (com sua letra) de todo o banco
+export function getRandomWord(): { letter: Letter; example: WordExample } {
+  const letters = AVAILABLE_LETTERS
+  const randomLetter = letters[Math.floor(Math.random() * letters.length)]
+  const examples = WORD_BANK[randomLetter]
+  const randomExample = examples[Math.floor(Math.random() * examples.length)]
+  return {
+    letter: randomLetter,
+    example: randomExample,
+  }
+}
