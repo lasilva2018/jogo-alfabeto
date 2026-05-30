@@ -1,5 +1,6 @@
 import { useChildProfile } from '../stores/useChildProfile'
 import { motion } from 'framer-motion'
+import { Alfafa } from './mascot/Alfafa'
 
 export function RewardsScreen({ onBack }: { onBack: () => void }) {
   const { profile } = useChildProfile()
@@ -25,7 +26,7 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 pt-8">
-        <div className="text-7xl mb-4">⭐</div>
+        <Alfafa mood="excited" size="xl" />
         
         <h1 className="text-4xl font-bold text-center text-purple-700 mb-2">
           Seu Tesouro, {name}!
@@ -67,7 +68,6 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
 
         {/* Encouraging message from Alfafa */}
         <div className="bg-purple-100 rounded-3xl px-6 py-5 max-w-md text-center">
-          <div className="text-4xl mb-2">🐘</div>
           <p className="text-purple-700 font-medium">
             {stars === 0 && "Vamos ganhar nossa primeira estrelinha juntos?"}
             {stars > 0 && stars < 10 && "Você está indo muito bem! Continue assim!"}

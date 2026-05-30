@@ -7,6 +7,7 @@ import {
   WordExample 
 } from '../../data/letters'
 import { useChildProfile } from '../../stores/useChildProfile'
+import { AlfafaMini } from '../mascot/Alfafa'
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U'] as const
 
@@ -149,16 +150,19 @@ export function TouchLetterGame() {
       {/* Área principal do jogo */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8 relative">
         
-        {/* Instrução */}
-        <div className="text-center mb-6">
-          <p className="text-xl font-medium text-gray-700">Toque na letra certa!</p>
-          <button 
-            onClick={handleSpeakHint}
-            disabled={game.isLocked}
-            className="mt-1 text-sm text-purple-600 active:opacity-70 disabled:opacity-40"
-          >
-            🔊 Ouvir a letra
-          </button>
+        {/* Instrução + Alfafa reativo */}
+        <div className="flex items-center gap-3 mb-6">
+          <AlfafaMini mood={game.lastResult === 'correct' ? 'celebrating' : game.lastResult === 'wrong' ? 'encouraging' : 'happy'} />
+          <div className="text-center">
+            <p className="text-xl font-medium text-gray-700">Toque na letra certa!</p>
+            <button 
+              onClick={handleSpeakHint}
+              disabled={game.isLocked}
+              className="mt-1 text-sm text-purple-600 active:opacity-70 disabled:opacity-40"
+            >
+              🔊 Ouvir a letra
+            </button>
+          </div>
         </div>
 
         {/* Letra gigante */}

@@ -1,6 +1,7 @@
 import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
 import { RewardsScreen } from './RewardsScreen'
+import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 
@@ -11,7 +12,6 @@ export function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
   const childName = profile?.name || 'amiguinho'
-  const avatar = profile?.avatar || '🐘'
   const stars = profile?.stars || 0
 
   if (currentScreen === 'touch-letter') {
@@ -57,12 +57,12 @@ export function Home() {
   // Home / Game Selector
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50 flex flex-col safe-area">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-4 flex items-center gap-4">
-        <div className="text-6xl">{avatar}</div>
-        <div>
-          <div className="text-sm text-purple-600">Olá, {childName}!</div>
-          <div className="text-3xl font-bold text-gray-800">O que vamos brincar hoje?</div>
+      {/* Header with Alfafa */}
+      <div className="px-6 pt-6 pb-2 flex items-start gap-4">
+        <Alfafa mood="happy" size="lg" />
+        <div className="pt-2">
+          <div className="text-purple-600 font-medium">Olá, {childName}!</div>
+          <div className="text-3xl font-bold text-gray-800 leading-tight">O que vamos<br />brincar hoje?</div>
         </div>
       </div>
 
