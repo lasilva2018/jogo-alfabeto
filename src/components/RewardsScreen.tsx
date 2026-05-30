@@ -1,6 +1,7 @@
 import { useChildProfile } from '../stores/useChildProfile'
 import { motion } from 'framer-motion'
 import { Alfafa } from './mascot/Alfafa'
+import { getAudioManager } from '../lib/audio/AudioManager'
 
 export function RewardsScreen({ onBack }: { onBack: () => void }) {
   const { profile } = useChildProfile()
@@ -67,13 +68,26 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Encouraging message from Alfafa */}
-        <div className="bg-purple-100 rounded-3xl px-6 py-5 max-w-md text-center">
+        <div 
+          onClick={() => {
+            const message = 
+              stars === 0 ? "Vamos ganhar nossa primeira estrelinha juntos?" :
+              stars < 10 ? "Você está indo muito bem! Continue assim!" :
+              stars < 25 ? "Uau, olha quantas estrelinhas! Eu estou muito orgulhoso de você!" :
+              `Você é um campeão das letras, ${name}! O Alfafa te ama!`
+
+            const audioManager = getAudioManager() as any
+            audioManager.speakAsAlfafa ? audioManager.speakAsAlfafa(message) : audioManager.speakPhrase(message)
+          }}
+          className="bg-purple-100 rounded-3xl px-6 py-5 max-w-md text-center cursor-pointer active:scale-[0.985] transition-transform"
+        >
           <p className="text-purple-700 font-medium">
             {stars === 0 && "Vamos ganhar nossa primeira estrelinha juntos?"}
             {stars > 0 && stars < 10 && "Você está indo muito bem! Continue assim!"}
             {stars >= 10 && stars < 25 && "Uau, olha quantas estrelinhas! Eu estou muito orgulhoso de você!"}
             {stars >= 25 && "Você é um campeão das letras, " + name + "! O Alfafa te ama!"}
           </p>
+          <p className="text-[10px] text-purple-500 mt-2">Toque no Alfafa para ouvir</p>
         </div>
 
         {stars > 5 && (

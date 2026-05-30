@@ -5,6 +5,7 @@ import { RewardsScreen } from './RewardsScreen'
 import { MinhasLetras } from './MinhasLetras'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile } from '../stores/useChildProfile'
+import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
 type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'rewards' | 'minhas-letras'
@@ -83,7 +84,16 @@ export function Home() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50 flex flex-col safe-area">
       {/* Header with Alfafa */}
       <div className="px-6 pt-6 pb-2 flex items-start gap-4">
-        <Alfafa mood="happy" size="lg" />
+        <div 
+          onClick={() => {
+            const greeting = `Olá ${childName}! Eu sou o Alfafa. Vamos brincar hoje?`
+            const audioManager = getAudioManager() as any
+            audioManager.speakAsAlfafa ? audioManager.speakAsAlfafa(greeting) : audioManager.speakPhrase(greeting)
+          }}
+          className="cursor-pointer active:scale-95 transition-transform"
+        >
+          <Alfafa mood="happy" size="lg" />
+        </div>
         <div className="pt-2">
           <div className="text-purple-600 font-medium">Olá, {childName}!</div>
           <div className="text-3xl font-bold text-gray-800 leading-tight">O que vamos<br />brincar hoje?</div>

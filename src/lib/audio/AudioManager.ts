@@ -3,7 +3,7 @@ import { ElevenLabsProvider } from './ElevenLabsProvider'
 export type FeedbackType = 'success' | 'mistake' | 'encourage'
 
 interface AudioProvider {
-  speak(text: string, options?: { rate?: number; pitch?: number }): Promise<void>
+  speak(text: string, options?: { rate?: number; pitch?: number; voice?: 'default' | 'alfafa' }): Promise<void>
   playFeedback(type: FeedbackType): Promise<void>
   cancel(): void
 }
@@ -31,6 +31,19 @@ class AudioManager {
 
   async speakPhrase(phrase: string) {
     await this.provider.speak(phrase, { rate: 0.95, pitch: 1.02 })
+  }
+
+  // Métodos específicos para o Alfafa (usa voz masculina quando disponível)
+  async speakAsAlfafa(text: string) {
+    await this.provider.speak(text, { rate: 0.95, pitch: 0.95, voice: 'alfafa' })
+  }
+
+  async speakLetterAsAlfafa(letter: string, example?: string) {
+    const text = example 
+      ? `Letra ${letter}! ${example} começa com a letra ${letter}.`
+      : `A letra é ${letter}!`
+    
+    await this.provider.speak(text, { rate: 0.93, pitch: 0.92, voice: 'alfafa' })
   }
 
   async playSuccess() {
@@ -64,7 +77,7 @@ class BrowserSpeechProvider implements AudioProvider {
     return this.audioCtx
   }
 
-  async speak(text: string, options: { rate?: number; pitch?: number } = {}) {
+  async speak(text: string, options: { rate?: number; pitch?: number; voice?: string } = {}) {
     if (!('speechSynthesis' in window)) {
       console.warn('SpeechSynthesis não disponível')
       return

@@ -2,10 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
-// Voz padrão recomendada para crianças (Alice - Português Brasileiro, voz quente e clara)
-const DEFAULT_VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice (Brazilian Portuguese)
+// Voz principal (narrativa / instruções) - Alice
+const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'Xb7hH8MSUJpSbSDYk0k2';
 
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
+// Voz do Alfafa (mascote masculino, mais carinhoso e grave)
+const ALFAFA_VOICE_ID = process.env.ELEVENLABS_ALFAFA_VOICE_ID || 'Xb7hH8MSUJpSbSDYk0k2'; // fallback para Alice por enquanto
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -18,13 +19,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { text, voiceId } = req.body;
+    const { text, voice = 'default' } = req.body; // 'default' | 'alfafa'
 
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    const targetVoiceId = voiceId || ELEVENLABS_VOICE_ID;
+    const targetVoiceId = voice === 'alfafa' ? ALFAFA_VOICE_ID : ELEVENLABS_VOICE_ID;
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}`,

@@ -24,10 +24,22 @@ Opcional (mas recomendado):
 - **Name**: `ELEVENLABS_VOICE_ID`
 - **Value**: O ID da voz que você quer usar
 
-**Voz recomendada para o jogo (crianças de 4 anos):**
-- `Xb7hH8MSUJpSbSDYk0k2` → Alice (Português Brasileiro, voz quente, clara e carinhosa)
+**Vozes recomendadas para o jogo (crianças de 4 anos):**
 
-Se você deixar sem definir `ELEVENLABS_VOICE_ID`, o app já vai usar a Alice por padrão.
+**Voz feminina principal (Alice):**
+- `Xb7hH8MSUJpSbSDYk0k2` → Alice (quente, clara e carinhosa)
+
+**Voz masculina para o Alfafa (recomendada):**
+- `Xb7hH8MSUJpSbSDYk0k2` (mesma por enquanto) ou procure por **"Rafael"** ou **"Daniel"** no ElevenLabs.
+
+Para ter vozes diferentes:
+1. No ElevenLabs, escolha uma boa voz masculina brasileira (Rafael ou Daniel costumam ficar ótimos).
+2. Copie o Voice ID dela.
+3. No Vercel, crie a variável:
+   - Nome: `ELEVENLABS_ALFAFA_VOICE_ID`
+   - Valor: o ID da voz masculina
+
+Se você não definir `ELEVENLABS_ALFAFA_VOICE_ID`, o Alfafa vai usar a mesma voz da Alice por enquanto.
 
 ## 3. Enable ElevenLabs in the app
 

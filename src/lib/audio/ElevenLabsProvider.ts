@@ -10,6 +10,8 @@ interface ElevenLabsOptions {
   voiceId?: string;
 }
 
+type VoiceType = 'default' | 'alfafa';
+
 /**
  * ElevenLabs Provider
  * 
@@ -18,10 +20,10 @@ interface ElevenLabsOptions {
  */
 export class ElevenLabsProvider implements AudioProvider {
   private audio: HTMLAudioElement | null = null;
-  private options: ElevenLabsOptions;
 
-  constructor(options: ElevenLabsOptions = {}) {
-    this.options = options;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(_options: ElevenLabsOptions = {}) {
+    // Options can be used later for voice configuration
   }
 
   private getAudioElement(): HTMLAudioElement {
@@ -31,8 +33,9 @@ export class ElevenLabsProvider implements AudioProvider {
     return this.audio;
   }
 
-  async speak(text: string, _options?: { rate?: number; pitch?: number }): Promise<void> {
+  async speak(text: string, opts?: { rate?: number; pitch?: number; voice?: VoiceType }): Promise<void> {
     const audio = this.getAudioElement();
+    const voiceType = opts?.voice || 'default';
 
     try {
       const response = await fetch('/api/tts', {
@@ -40,7 +43,7 @@ export class ElevenLabsProvider implements AudioProvider {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          voiceId: this.options.voiceId,
+          voice: voiceType,
         }),
       });
 
