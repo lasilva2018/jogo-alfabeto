@@ -1,11 +1,12 @@
 import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
+import { CacaLetraGame } from './games/CacaLetraGame'
 import { RewardsScreen } from './RewardsScreen'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'rewards'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'rewards'
 
 export function Home() {
   const { profile } = useChildProfile()
@@ -46,6 +47,24 @@ export function Home() {
           <div className="w-8" />
         </div>
         <QualComecoGame />
+      </div>
+    )
+  }
+
+  if (currentScreen === 'caca-letra') {
+    return (
+      <div>
+        <div className="bg-white/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b">
+          <button 
+            onClick={() => setCurrentScreen('home')}
+            className="text-purple-600 font-medium flex items-center gap-1 text-lg active:opacity-70"
+          >
+            ← Voltar
+          </button>
+          <div className="text-sm text-gray-500">Caça à Letra</div>
+          <div className="w-8" />
+        </div>
+        <CacaLetraGame />
       </div>
     )
   }
@@ -92,6 +111,20 @@ export function Home() {
             <div className="flex-1">
               <div className="text-3xl font-bold text-orange-600">Qual o Começo?</div>
               <div className="text-lg text-gray-600 mt-1">Qual letra começa a palavra?</div>
+            </div>
+          </div>
+        </button>
+
+        {/* Game 3 - New Caça à Letra */}
+        <button
+          onClick={() => setCurrentScreen('caca-letra')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-pink-200 active:scale-[0.985] transition-transform text-left"
+        >
+          <div className="flex items-center gap-5">
+            <div className="text-7xl">🔍</div>
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-pink-600">Caça à Letra</div>
+              <div className="text-lg text-gray-600 mt-1">Encontre todas as letras!</div>
             </div>
           </div>
         </button>
