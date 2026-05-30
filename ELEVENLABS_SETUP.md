@@ -10,18 +10,24 @@ This app supports high-quality voice using **ElevenLabs** (much better than brow
    - Warm, clear, friendly female or male voices work best.
    - Examples that usually work well: "Bella", "Rachel", or custom cloned voices.
 
-## 2. Add the environment variable on Vercel
+## 2. Add the environment variables on Vercel
 
 In your Vercel project:
 
 1. Go to **Settings → Environment Variables**
 2. Add:
    - **Name**: `ELEVENLABS_API_KEY`
-   - **Value**: your key
-   - **Environment**: Production + Preview (recommended)
+   - **Value**: sua chave do ElevenLabs
+   - **Environment**: Production + Preview
 
-You can also optionally set:
-- `ELEVENLABS_VOICE_ID` → specific voice ID (otherwise it uses a default warm voice)
+Opcional (mas recomendado):
+- **Name**: `ELEVENLABS_VOICE_ID`
+- **Value**: O ID da voz que você quer usar
+
+**Voz recomendada para o jogo (crianças de 4 anos):**
+- `Xb7hH8MSUJpSbSDYk0k2` → Alice (Português Brasileiro, voz quente, clara e carinhosa)
+
+Se você deixar sem definir `ELEVENLABS_VOICE_ID`, o app já vai usar a Alice por padrão.
 
 ## 3. Enable ElevenLabs in the app
 

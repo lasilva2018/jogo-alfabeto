@@ -6,11 +6,12 @@ import App from './App.tsx'
 // === ElevenLabs Voice (ativado) ===
 import { enableElevenLabsVoice } from './lib/audio/AudioManager'
 
-// Ativando voz de alta qualidade do ElevenLabs
-// (a chave está configurada nas variáveis de ambiente do Vercel)
+// Voz de alta qualidade do ElevenLabs ativada
+// (a chave está nas variáveis de ambiente do Vercel)
+// Por padrão está usando a voz "Alice" (ótima para crianças)
 enableElevenLabsVoice()
 
-// Se quiser usar uma voz específica, passe o voice_id:
+// Se quiser trocar a voz, passe o Voice ID:
 // enableElevenLabsVoice('SEU_VOICE_ID_AQUI')
 
 createRoot(document.getElementById('root')!).render(
