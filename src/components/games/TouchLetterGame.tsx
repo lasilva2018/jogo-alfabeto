@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { audioManager } from '../../lib/audio/AudioManager'
+import { getAudioManager } from '../../lib/audio/AudioManager'
 import { 
   getRandomExample, 
   getRandomDistractors, 
@@ -77,11 +77,11 @@ export function TouchLetterGame() {
       useChildProfile.getState().addStars(1)
       useChildProfile.getState().recordLetterPractice(game.currentLetter, true)
       
-      await audioManager.playSuccess()
+      await getAudioManager().playSuccess()
       
       // Fala a letra + exemplo de forma carinhosa com o nome da criança
       const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
-      await audioManager.speakPhrase(speakText)
+      await getAudioManager().speakPhrase(speakText)
 
       // Celebra e avança
       setTimeout(() => {
@@ -92,11 +92,11 @@ export function TouchLetterGame() {
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
       useChildProfile.getState().recordLetterPractice(game.currentLetter, false)
       
-      await audioManager.playMistake()
+      await getAudioManager().playMistake()
 
       // Depois de um tempo, revela a resposta certa e libera
       setTimeout(async () => {
-        await audioManager.speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -111,7 +111,7 @@ export function TouchLetterGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    audioManager.speakLetter(game.currentLetter, game.example.word)
+    getAudioManager().speakLetter(game.currentLetter, game.example.word)
   }
 
   return (

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { audioManager } from '../../lib/audio/AudioManager'
+import { getAudioManager } from '../../lib/audio/AudioManager'
 import { 
   getRandomWord, 
   getRandomDistractors, 
@@ -67,10 +67,10 @@ export function QualComecoGame() {
       useChildProfile.getState().addStars(1)
       useChildProfile.getState().recordLetterPractice(game.letter, true)
 
-      await audioManager.playSuccess()
+      await getAudioManager().playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
-      await audioManager.speakPhrase(speakText)
+      await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -79,11 +79,11 @@ export function QualComecoGame() {
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
       useChildProfile.getState().recordLetterPractice(game.letter, false)
 
-      await audioManager.playMistake()
+      await getAudioManager().playMistake()
 
       setTimeout(async () => {
         const speakText = `${game.example.word} começa com a letra ${game.letter}, ${childName}!`
-        await audioManager.speakPhrase(speakText)
+        await getAudioManager().speakPhrase(speakText)
 
         setGame(prev => ({
           ...prev,
@@ -98,7 +98,7 @@ export function QualComecoGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `${game.example.word}... Qual letra começa?`
-    audioManager.speakPhrase(speakText)
+    getAudioManager().speakPhrase(speakText)
   }
 
   return (

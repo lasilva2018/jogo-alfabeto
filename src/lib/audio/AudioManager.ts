@@ -1,3 +1,5 @@
+import { ElevenLabsProvider } from './ElevenLabsProvider'
+
 export type FeedbackType = 'success' | 'mistake' | 'encourage'
 
 interface AudioProvider {
@@ -10,9 +12,7 @@ interface AudioProvider {
  * AudioManager
  * 
  * Abstração central de áudio para o jogo.
- * Atualmente usa SpeechSynthesis + Web Audio.
- * 
- * Futuramente será plugável com ElevenLabs (via Edge Function).
+ * Suporta tanto SpeechSynthesis (fallback) quanto ElevenLabs (alta qualidade).
  */
 class AudioManager {
   private provider: AudioProvider
@@ -164,8 +164,28 @@ class BrowserSpeechProvider implements AudioProvider {
   }
 }
 
-// Instância singleton
+// ============================================
+// Factory + Singleton
+// ============================================
+
+let currentManager: AudioManager
+
+// Default: Browser Speech (fallback)
 const browserProvider = new BrowserSpeechProvider()
-export const audioManager = new AudioManager(browserProvider)
+currentManager = new AudioManager(browserProvider)
+
+export function getAudioManager(): AudioManager {
+  return currentManager
+}
+
+// Call this once (e.g. in main.tsx) to enable ElevenLabs
+export function enableElevenLabsVoice(voiceId?: string) {
+  const elevenProvider = new ElevenLabsProvider({ voiceId })
+  currentManager = new AudioManager(elevenProvider)
+  console.log('%c[Audio] ElevenLabs provider enabled', 'color:#22c55e')
+}
+
+// Legacy export (still works, but may be stale after switching providers)
+export const audioManager = currentManager
 
 export default audioManager
