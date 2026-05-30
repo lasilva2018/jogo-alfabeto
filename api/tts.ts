@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    const targetVoiceId = voice === 'alfafa' ? ALFAFA_VOICE_ID : ELEVENLABS_VOICE_ID;
+    const targetVoiceId = voice === 'alfafa' ? ALFAFA_VOICE_ID : DEFAULT_VOICE_ID;
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}`,
