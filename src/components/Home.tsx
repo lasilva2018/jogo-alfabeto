@@ -1,6 +1,7 @@
 import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
 import { CacaLetraGame } from './games/CacaLetraGame'
+import { CompletePalavraGame } from './games/CompletePalavraGame'
 import { RewardsScreen } from './RewardsScreen'
 import { MinhasLetras } from './MinhasLetras'
 import { Alfafa } from './mascot/Alfafa'
@@ -8,7 +9,7 @@ import { useChildProfile } from '../stores/useChildProfile'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'rewards' | 'minhas-letras'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'rewards' | 'minhas-letras'
 
 export function Home() {
   const { profile } = useChildProfile()
@@ -67,6 +68,24 @@ export function Home() {
           <div className="w-8" />
         </div>
         <CacaLetraGame />
+      </div>
+    )
+  }
+
+  if (currentScreen === 'complete-palavra') {
+    return (
+      <div>
+        <div className="bg-white/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b">
+          <button 
+            onClick={() => setCurrentScreen('home')}
+            className="text-purple-600 font-medium flex items-center gap-1 text-lg active:opacity-70"
+          >
+            ← Voltar
+          </button>
+          <div className="text-sm text-gray-500">Complete a Palavra</div>
+          <div className="w-8" />
+        </div>
+        <CompletePalavraGame />
       </div>
     )
   }
@@ -140,6 +159,20 @@ export function Home() {
             <div className="flex-1">
               <div className="text-3xl font-bold text-pink-600">Caça à Letra</div>
               <div className="text-lg text-gray-600 mt-1">Encontre todas as letras!</div>
+            </div>
+          </div>
+        </button>
+
+        {/* Game 4 - Complete a Palavra */}
+        <button
+          onClick={() => setCurrentScreen('complete-palavra')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-teal-200 active:scale-[0.985] transition-transform text-left"
+        >
+          <div className="flex items-center gap-5">
+            <div className="text-7xl">✏️</div>
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-teal-600">Complete a Palavra</div>
+              <div className="text-lg text-gray-600 mt-1">Qual letra está faltando?</div>
             </div>
           </div>
         </button>
