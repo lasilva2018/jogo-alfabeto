@@ -60,9 +60,9 @@ export function PrivacyPolicy({ onAccept, onClose, showAcceptButton = false }: P
           <section>
             <h3 className="font-semibold text-lg text-gray-800">4. Voz e ElevenLabs</h3>
             <p>
-              Algumas falas do Alfafa utilizam o serviço de síntese de voz da ElevenLabs. 
+              As falas do Alfafa utilizam o serviço de síntese de voz da ElevenLabs para soar natural e carinhoso (muito melhor que a voz robótica do navegador). 
               O texto é enviado de forma segura para gerar o áudio. Não armazenamos frases identificáveis de forma permanente.
-              Você pode desativar a voz premium a qualquer momento nas configurações.
+              (No futuro pode haver opção de usar a voz do navegador para reduzir consumo, mas por enquanto a voz de qualidade é o padrão para todas as crianças.)
             </p>
           </section>
 

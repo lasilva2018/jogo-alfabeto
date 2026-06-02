@@ -109,24 +109,15 @@ export function MontePalavraGame() {
 
         const fullWord = game.target.word
         const speakText = `Perfeito, ${childName}! Você montou ${fullWord} certinho! Que legal!`
-        
-        const audio = getAudioManager() as any
-        if (audio.speakAsAlfafa) {
-          audio.speakAsAlfafa(speakText)
-        } else {
-          getAudioManager().speakPhrase(speakText)
-        }
+        getAudioManager().speakAsAlfafa(speakText)
 
         setTimeout(() => {
           nextRound()
         }, LONG_CELEBRATION_AUTO_ADVANCE_MS)
       } else {
         // Partial success - encourage next letter
-        const audio = getAudioManager() as any
         const speakText = `${letter}! Muito bem!`
-        if (audio.speakAsAlfafa) {
-          audio.speakAsAlfafa(speakText)
-        }
+        getAudioManager().speakAsAlfafa(speakText)
       }
     } else {
       // Wrong letter
@@ -153,14 +144,8 @@ export function MontePalavraGame() {
   }
 
   const handleSpeakHint = () => {
-    const audio = getAudioManager() as any
     const message = `Monte a palavra ${game.target.word} tocando as letras na ordem certa, ${childName}!`
-    
-    if (audio.speakAsAlfafa) {
-      audio.speakAsAlfafa(message)
-    } else {
-      getAudioManager().speakPhrase(message)
-    }
+    getAudioManager().speakAsAlfafa(message)
   }
 
   const blanks = game.target.letters.map((_, i) => game.built[i] || '_')

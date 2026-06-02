@@ -1,5 +1,4 @@
 import type { FeedbackType } from './AudioManager';
-import { useChildProfile } from '../../stores/useChildProfile';
 
 interface AudioProvider {
   speak(text: string, options?: { rate?: number; pitch?: number }): Promise<void>
@@ -16,8 +15,10 @@ type VoiceType = 'default' | 'alfafa';
 /**
  * ElevenLabs Provider
  * 
- * Calls our Vercel API route which proxies to ElevenLabs.
- * Much higher quality and natural voice than browser SpeechSynthesis.
+ * Calls our Vercel Edge Function (/api/tts) which proxies to ElevenLabs.
+ * High quality natural voice (Alice + dedicated Alfafa masculine) for ALL users.
+ * Cost is controlled by in-memory cache + immutable HTTP cache (1 year) on the Edge.
+ * Fallback to browser SpeechSynthesis ONLY on real errors (no key, network, 5xx, etc).
  */
 export class ElevenLabsProvider implements AudioProvider {
   private audio: HTMLAudioElement | null = null;
@@ -39,19 +40,11 @@ export class ElevenLabsProvider implements AudioProvider {
   }
 
   async speak(text: string, opts?: { rate?: number; pitch?: number; voice?: VoiceType }): Promise<void> {
-    // Gate de custo: apenas usuários Premium consomem a cota da ElevenLabs.
-    // Usuários free usam sempre o fallback do navegador (SpeechSynthesis).
-    const { parentSettings } = useChildProfile.getState();
-    if (!parentSettings?.isPremium) {
-      console.log('%c[ElevenLabs] Usuário free — voz do navegador (sem custo ElevenLabs)', 'color:#f59e0b');
-      return this.fallbackToBrowserSpeech(text);
-    }
-
     const audio = this.getAudioElement();
     const voiceType = opts?.voice || 'default';
     const cacheKey = `${voiceType}:${text}`;
 
-    console.log('%c[ElevenLabs] Tentando falar via ElevenLabs (Premium)...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
+    console.log('%c[ElevenLabs] Tentando falar via ElevenLabs (alta qualidade para todos)...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
 
     // Tenta cache primeiro (evita gastar cota do ElevenLabs em repetições)
     if (this.audioCache.has(cacheKey)) {
@@ -121,7 +114,7 @@ export class ElevenLabsProvider implements AudioProvider {
   }
 
   private async fallbackToBrowserSpeech(text: string): Promise<void> {
-    console.log('%c[ElevenLabs] Usando fallback do navegador (SpeechSynthesis)', 'color:#f59e0b');
+    console.log('%c[ElevenLabs] FALLBACK para navegador (SpeechSynthesis) — só acontece em erro real da API', 'color:#f59e0b');
 
     if (!('speechSynthesis' in window)) {
       console.error('%c[ElevenLabs] SpeechSynthesis não disponível neste navegador', 'color:#ef4444');

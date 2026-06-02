@@ -21,7 +21,6 @@ type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete
 
 export function Home() {
   const profile = useCurrentProfile()
-  const parentSettings = useChildProfile((state) => state.parentSettings)
   const isAuthenticated = useChildProfile((state) => state.isAuthenticated)
   const createProfileAction = useChildProfile((state) => state.createProfile)
   const acceptPrivacy = useChildProfile((state) => state.acceptPrivacy)
@@ -31,7 +30,6 @@ export function Home() {
 
   const childName = profile?.name || 'amiguinho'
   const stars = profile?.stars || 0
-  const isPremium = parentSettings?.isPremium || false
 
   // Form simples para criar o primeiro perfil de criança (usado quando o responsável já autenticou via Supabase
   // mas ainda não tem nenhum perfil de criança cadastrado)
@@ -282,8 +280,7 @@ export function Home() {
             if (hasWeakLetters) {
               greeting = `Olá ${childName}! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
             }
-            const audioManager = getAudioManager() as any
-            audioManager.speakAsAlfafa ? audioManager.speakAsAlfafa(greeting) : audioManager.speakPhrase(greeting)
+            getAudioManager().speakAsAlfafa(greeting)
           }}
           className="cursor-pointer active:scale-95 transition-transform"
         >
@@ -454,16 +451,10 @@ export function Home() {
           </div>
         </button>
 
-        {/* Game 6 - Qual Não Pertence? (discriminação) - Premium */}
+        {/* Game 6 - Qual Não Pertence? (discriminação) */}
         <button
-          onClick={() => {
-            if (!isPremium) {
-              setCurrentScreen('premium')
-              return
-            }
-            setCurrentScreen('qual-nao-pertence')
-          }}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-rose-200 active:scale-[0.985] transition-transform text-left relative"
+          onClick={() => setCurrentScreen('qual-nao-pertence')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-rose-200 active:scale-[0.985] transition-transform text-left"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🧐</div>
@@ -472,21 +463,12 @@ export function Home() {
               <div className="text-lg text-gray-600 mt-1">Ache o diferente!</div>
             </div>
           </div>
-          {!isPremium && (
-            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
-          )}
         </button>
 
-        {/* Game 7 - Monte a Palavra (sequenciação) - Premium */}
+        {/* Game 7 - Monte a Palavra (sequenciação) */}
         <button
-          onClick={() => {
-            if (!isPremium) {
-              setCurrentScreen('premium')
-              return
-            }
-            setCurrentScreen('monte-palavra')
-          }}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-violet-200 active:scale-[0.985] transition-transform text-left relative"
+          onClick={() => setCurrentScreen('monte-palavra')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-violet-200 active:scale-[0.985] transition-transform text-left"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🔡</div>
@@ -498,9 +480,6 @@ export function Home() {
               )}
             </div>
           </div>
-          {!isPremium && (
-            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
-          )}
         </button>
 
         {/* Game 8 - Jogo da Memória (associação) */}
@@ -531,16 +510,10 @@ export function Home() {
           </div>
         </button>
 
-        {/* Game 10 - Caça às Palavras (mais avançado) - Premium */}
+        {/* Game 10 - Caça às Palavras */}
         <button
-          onClick={() => {
-            if (!isPremium) {
-              setCurrentScreen('premium')
-              return
-            }
-            setCurrentScreen('caca-palavras')
-          }}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-amber-200 active:scale-[0.985] transition-transform text-left relative"
+          onClick={() => setCurrentScreen('caca-palavras')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-amber-200 active:scale-[0.985] transition-transform text-left"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🔎</div>
@@ -552,9 +525,6 @@ export function Home() {
               )}
             </div>
           </div>
-          {!isPremium && (
-            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
-          )}
         </button>
 
         {/* Rewards Button */}

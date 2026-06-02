@@ -195,7 +195,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
             {parentSettings.isPremium ? (
               <>✓ Você tem acesso completo (Premium)</>
             ) : (
-              <>Acesso limitado a 7 jogos. Desbloqueie os 3 jogos avançados + voz de qualidade + novidades.</>
+              <>Todos os 10 joguinhos estão liberados. Desbloqueie relatórios para pais + novidades com Premium.</>
             )}
           </div>
 

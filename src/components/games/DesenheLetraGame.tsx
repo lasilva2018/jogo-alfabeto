@@ -273,16 +273,11 @@ export function DesenheLetraGame() {
 
     await getAudioManager().playSuccess()
 
-    const audio = getAudioManager() as any
     const message = isGood
       ? `Muito bem, ${childName}! Você desenhou a letra ${currentLetter} lindamente!`
       : `Quase, ${childName}! Tente desenhar mais parecido com a letra ${currentLetter}.`
 
-    if (audio.speakAsAlfafa) {
-      audio.speakAsAlfafa(message)
-    } else {
-      getAudioManager().speakPhrase(message)
-    }
+    getAudioManager().speakAsAlfafa(message)
 
     setTimeout(() => {
       nextLetter()
@@ -303,14 +298,8 @@ export function DesenheLetraGame() {
   }
 
   const handleSpeakHint = () => {
-    const audio = getAudioManager() as any
     const message = `Desenhe a letra ${currentLetter} com o dedo!`
-    
-    if (audio.speakAsAlfafa) {
-      audio.speakAsAlfafa(message)
-    } else {
-      getAudioManager().speakPhrase(message)
-    }
+    getAudioManager().speakAsAlfafa(message)
   }
 
   return (

@@ -23,8 +23,8 @@ export function PremiumScreen({ onBack, onUnlockSuccess }: PremiumScreenProps) {
   }
 
   const benefits = [
-    { icon: '🔓', title: 'Todos os 10 joguinhos liberados', desc: 'Monte a Palavra, Qual Não Pertence, Caça às Palavras e futuros jogos' },
-    { icon: '🎙️', title: 'Voz ElevenLabs premium sem limite', desc: 'Alfafa e Alice com qualidade de estúdio em todas as falas' },
+    { icon: '🔓', title: 'Todos os 10 joguinhos já liberados', desc: 'Monte a Palavra, Qual Não Pertence, Caça às Palavras + futuros jogos' },
+    { icon: '🎙️', title: 'Voz ElevenLabs de qualidade para todos', desc: 'Alfafa (voz masculina) e Alice em todas as falas — já disponível no grátis' },
     { icon: '📊', title: 'Relatórios para os pais (em breve)', desc: 'Acompanhe o progresso real por letra e tempo de uso' },
     { icon: '✨', title: 'Novos jogos e atualizações primeiro', desc: 'Acesso antecipado a novos mini-jogos e melhorias' },
     { icon: '🚫', title: 'Sem anúncios, sem distrações', desc: 'Experiência 100% focada na criança' },
@@ -94,17 +94,17 @@ export function PremiumScreen({ onBack, onUnlockSuccess }: PremiumScreenProps) {
           <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
             <div className="font-medium mb-2 text-purple-200">Grátis</div>
             <ul className="space-y-1 text-white/70 text-xs">
-              <li>7 jogos básicos</li>
-              <li>Voz do navegador (robótica)</li>
+              <li>Todos os 10 jogos</li>
+              <li>Voz ElevenLabs de qualidade</li>
               <li>Progresso local</li>
             </ul>
           </div>
           <div className="bg-white/10 rounded-2xl p-4 border border-white/30">
             <div className="font-medium mb-2 text-white">Premium</div>
             <ul className="space-y-1 text-white text-xs">
-              <li>10+ jogos completos</li>
-              <li>Voz ElevenLabs real</li>
-              <li>Relatórios + novos jogos</li>
+              <li>Todos os jogos + prioridade em novos</li>
+              <li>Relatórios para pais (em breve)</li>
+              <li>Suporte prioritário + atualizações primeiro</li>
             </ul>
           </div>
         </div>

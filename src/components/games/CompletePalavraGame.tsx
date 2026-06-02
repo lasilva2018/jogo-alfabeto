@@ -73,13 +73,7 @@ export function CompletePalavraGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
-      
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        audio.speakAsAlfafa(speakText)
-      } else {
-        getAudioManager().speakPhrase(speakText)
-      }
+      getAudioManager().speakAsAlfafa(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -92,12 +86,7 @@ export function CompletePalavraGame() {
 
       setTimeout(async () => {
         const speakText = `A letra certa aqui é ${game.correctLetter}, ${childName}!`
-        const audio = getAudioManager() as any
-        if (audio.speakAsAlfafa) {
-          audio.speakAsAlfafa(speakText)
-        } else {
-          getAudioManager().speakPhrase(speakText)
-        }
+        getAudioManager().speakAsAlfafa(speakText)
 
         setGame(prev => ({
           ...prev,
@@ -111,7 +100,7 @@ export function CompletePalavraGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `Complete a palavra. Qual letra falta aqui?`
-    getAudioManager().speakPhrase(speakText)
+    getAudioManager().speakAsAlfafa(speakText)
   }
 
   // Build the displayed word with blank

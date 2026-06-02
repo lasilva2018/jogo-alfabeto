@@ -76,8 +76,7 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
               stars < 25 ? "Uau, olha quantas estrelinhas! Eu estou muito orgulhoso de você!" :
               `Você é um campeão das letras, ${name}! O Alfafa te ama!`
 
-            const audioManager = getAudioManager() as any
-            audioManager.speakAsAlfafa ? audioManager.speakAsAlfafa(message) : audioManager.speakPhrase(message)
+            getAudioManager().speakAsAlfafa(message)
           }}
           className="bg-purple-100 rounded-3xl px-6 py-5 max-w-md text-center cursor-pointer active:scale-[0.985] transition-transform"
         >

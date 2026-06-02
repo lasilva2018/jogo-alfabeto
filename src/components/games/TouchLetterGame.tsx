@@ -82,12 +82,7 @@ export function TouchLetterGame() {
       
       // Fala a letra + exemplo de forma carinhosa com o nome da criança
       const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        await audio.speakAsAlfafa(speakText)
-      } else {
-        await getAudioManager().speakPhrase(speakText)
-      }
+      await getAudioManager().speakAsAlfafa(speakText)
 
       // Celebra e avança
       setTimeout(() => {
@@ -102,12 +97,7 @@ export function TouchLetterGame() {
 
       // Depois de um tempo, revela a resposta certa e libera
       setTimeout(async () => {
-        const audio2 = getAudioManager() as any
-        if (audio2.speakAsAlfafa) {
-          await audio2.speakAsAlfafa(`A letra certa é ${game.currentLetter}, ${childName}!`)
-        } else {
-          await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
-        }
+        await getAudioManager().speakAsAlfafa(`A letra certa é ${game.currentLetter}, ${childName}!`)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -122,12 +112,7 @@ export function TouchLetterGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    const audio = getAudioManager() as any
-    if (audio.speakLetterAsAlfafa) {
-      audio.speakLetterAsAlfafa(game.currentLetter, game.example.word)
-    } else {
-      getAudioManager().speakLetter(game.currentLetter, game.example.word)
-    }
+    getAudioManager().speakLetterAsAlfafa(game.currentLetter, game.example.word)
   }
 
   return (

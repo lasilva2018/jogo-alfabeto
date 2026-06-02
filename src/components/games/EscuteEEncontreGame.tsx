@@ -68,14 +68,8 @@ export function EscuteEEncontreGame() {
 
   // Fala a palavra automaticamente no início da rodada
   const speakTarget = useCallback(async (word: string) => {
-    const audio = getAudioManager() as any
     const text = `${word}!`
-    
-    if (audio.speakAsAlfafa) {
-      await audio.speakAsAlfafa(text)
-    } else {
-      await getAudioManager().speakPhrase(text)
-    }
+    await getAudioManager().speakAsAlfafa(text)
   }, [])
 
   // Fala no início da rodada
@@ -112,13 +106,7 @@ export function EscuteEEncontreGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! É ${game.target.word}! Muito bem!`
-      
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        audio.speakAsAlfafa(speakText)
-      } else {
-        getAudioManager().speakPhrase(speakText)
-      }
+      getAudioManager().speakAsAlfafa(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -131,13 +119,7 @@ export function EscuteEEncontreGame() {
 
       setTimeout(async () => {
         const speakText = `Não foi essa... A palavra que eu falei foi ${game.target.word}, ${childName}!`
-        
-        const audio = getAudioManager() as any
-        if (audio.speakAsAlfafa) {
-          audio.speakAsAlfafa(speakText)
-        } else {
-          getAudioManager().speakPhrase(speakText)
-        }
+        getAudioManager().speakAsAlfafa(speakText)
 
         // Mostra a correta por um tempo e avança
         setTimeout(() => {

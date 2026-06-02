@@ -12,7 +12,8 @@ interface AudioProvider {
  * AudioManager
  * 
  * Abstração central de áudio para o jogo.
- * Suporta tanto SpeechSynthesis (fallback) quanto ElevenLabs (alta qualidade).
+ * ElevenLabsProvider é o padrão (voz de qualidade para todas as crianças).
+ * BrowserSpeechProvider é usado apenas como fallback em erros ou antes do enable.
  */
 class AudioManager {
   private provider: AudioProvider

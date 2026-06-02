@@ -59,13 +59,7 @@ export function QualNaoPertenceGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! Essa começa com outra letra. Muito esperto!`
-      
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        audio.speakAsAlfafa(speakText)
-      } else {
-        getAudioManager().speakPhrase(speakText)
-      }
+      getAudioManager().speakAsAlfafa(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -82,13 +76,7 @@ export function QualNaoPertenceGame() {
       const correctLetter = oddOption.letter
       
       const speakText = `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${childName}!`
-      
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        await audio.speakAsAlfafa(speakText)
-      } else {
-        await getAudioManager().speakPhrase(speakText)
-      }
+      await getAudioManager().speakAsAlfafa(speakText)
 
       // Só avança depois que a explicação terminar de ser falada
       nextRound()
@@ -98,14 +86,8 @@ export function QualNaoPertenceGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     
-    const audio = getAudioManager() as any
     const message = `Olha as três palavras, ${childName}. Qual não pertence?`
-    
-    if (audio.speakAsAlfafa) {
-      audio.speakAsAlfafa(message)
-    } else {
-      getAudioManager().speakPhrase(message)
-    }
+    getAudioManager().speakAsAlfafa(message)
   }
 
   return (
