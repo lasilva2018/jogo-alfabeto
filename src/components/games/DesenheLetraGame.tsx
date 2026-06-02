@@ -88,7 +88,15 @@ export function DesenheLetraGame() {
     letter: string,
     childAge: number = 4
   ): boolean {
-    if (!ctx || !canvas || points.length < (childAge <= 3 ? 3 : 8)) return false
+    if (!ctx || !canvas) return false;
+
+    // For 3 years old and under: THE EASIEST POSSIBLE.
+    // As long as they clicked "Terminei!" after having drawn something (hasDrawn is checked outside),
+    // accept it immediately. No shape, size, center or overlap checks at all.
+    // 3yo drawings are expected to be very simple and imperfect. Goal is encouragement.
+    if (childAge <= 3) return true;
+
+    if (points.length < 8) return false;
 
     // Quick bbox reject
     const xs = points.map(p => p.x)
