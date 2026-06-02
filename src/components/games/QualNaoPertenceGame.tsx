@@ -59,7 +59,8 @@ export function QualNaoPertenceGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! Essa começa com outra letra. Muito esperto!`
-      getAudioManager().speakAsAlfafa(speakText)
+      // Voz principal feminina
+      getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -70,13 +71,13 @@ export function QualNaoPertenceGame() {
 
       await getAudioManager().playMistake()
 
-      // Feedback corretivo com voz do Alfafa
+      // Feedback corretivo (voz principal feminina)
       // Mantemos a tela com o erro visível (carta correta destacada) enquanto a voz explica
       const correctWord = oddOption.example.word
       const correctLetter = oddOption.letter
       
       const speakText = `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${childName}!`
-      await getAudioManager().speakAsAlfafa(speakText)
+      await getAudioManager().speakPhrase(speakText)
 
       // Só avança depois que a explicação terminar de ser falada
       nextRound()
@@ -87,7 +88,8 @@ export function QualNaoPertenceGame() {
     if (game.isLocked) return
     
     const message = `Olha as três palavras, ${childName}. Qual não pertence?`
-    getAudioManager().speakAsAlfafa(message)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(message)
   }
 
   return (

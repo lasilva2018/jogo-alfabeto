@@ -94,7 +94,8 @@ export function CacaLetraGame() {
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
         const speakText = `Isso, ${childName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
-        await getAudioManager().speakAsAlfafa(speakText)
+        // Voz principal feminina
+        await getAudioManager().speakPhrase(speakText)
 
         setTimeout(() => {
           nextRound()
@@ -117,7 +118,8 @@ export function CacaLetraGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `Encontre todas as letras ${game.targetLetter}, ${childName}!`
-    getAudioManager().speakAsAlfafa(speakText)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(speakText)
   }
 
   const foundCount = game.found.size

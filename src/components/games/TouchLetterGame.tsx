@@ -80,9 +80,9 @@ export function TouchLetterGame() {
       
       await getAudioManager().playSuccess()
       
-      // Fala a letra + exemplo de forma carinhosa com o nome da criança
+      // Fala a letra + exemplo de forma carinhosa com o nome da criança (voz principal feminina)
       const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
-      await getAudioManager().speakAsAlfafa(speakText)
+      await getAudioManager().speakPhrase(speakText)
 
       // Celebra e avança
       setTimeout(() => {
@@ -95,9 +95,9 @@ export function TouchLetterGame() {
       
       await getAudioManager().playMistake()
 
-      // Depois de um tempo, revela a resposta certa e libera
+      // Depois de um tempo, revela a resposta certa e libera (voz principal feminina)
       setTimeout(async () => {
-        await getAudioManager().speakAsAlfafa(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -112,7 +112,8 @@ export function TouchLetterGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    getAudioManager().speakLetterAsAlfafa(game.currentLetter, game.example.word)
+    // Voz principal feminina para nome da letra + exemplo
+    getAudioManager().speakLetter(game.currentLetter, game.example.word)
   }
 
   return (

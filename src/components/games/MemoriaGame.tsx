@@ -120,7 +120,8 @@ export function MemoriaGame() {
         await getAudioManager().playSuccess()
 
         const speakText = `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem, ${childName}!`
-        getAudioManager().speakAsAlfafa(speakText)
+        // Voz principal feminina
+        getAudioManager().speakPhrase(speakText)
 
         // Verifica se o round terminou (3 pares)
         if (newMatched.size === 3) {
@@ -158,7 +159,8 @@ export function MemoriaGame() {
     if (game.isChecking) return
 
     const message = `Vire as cartas e encontre os pares, ${childName}!`
-    getAudioManager().speakAsAlfafa(message)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(message)
   }
 
   const isCardOpen = (index: number) => {

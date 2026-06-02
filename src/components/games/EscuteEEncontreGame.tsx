@@ -66,10 +66,10 @@ export function EscuteEEncontreGame() {
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
 
-  // Fala a palavra automaticamente no início da rodada
+  // Fala a palavra automaticamente no início da rodada (voz principal feminina)
   const speakTarget = useCallback(async (word: string) => {
     const text = `${word}!`
-    await getAudioManager().speakAsAlfafa(text)
+    await getAudioManager().speakPhrase(text)
   }, [])
 
   // Fala no início da rodada
@@ -106,7 +106,8 @@ export function EscuteEEncontreGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! É ${game.target.word}! Muito bem!`
-      getAudioManager().speakAsAlfafa(speakText)
+      // Voz principal feminina
+      getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -119,7 +120,8 @@ export function EscuteEEncontreGame() {
 
       setTimeout(async () => {
         const speakText = `Não foi essa... A palavra que eu falei foi ${game.target.word}, ${childName}!`
-        getAudioManager().speakAsAlfafa(speakText)
+        // Voz principal feminina
+        getAudioManager().speakPhrase(speakText)
 
         // Mostra a correta por um tempo e avança
         setTimeout(() => {

@@ -277,7 +277,8 @@ export function DesenheLetraGame() {
       ? `Muito bem, ${childName}! Você desenhou a letra ${currentLetter} lindamente!`
       : `Quase, ${childName}! Tente desenhar mais parecido com a letra ${currentLetter}.`
 
-    getAudioManager().speakAsAlfafa(message)
+    // Voz principal feminina (Alice) para feedbacks de desenho
+    getAudioManager().speakPhrase(message)
 
     setTimeout(() => {
       nextLetter()
@@ -299,7 +300,8 @@ export function DesenheLetraGame() {
 
   const handleSpeakHint = () => {
     const message = `Desenhe a letra ${currentLetter} com o dedo!`
-    getAudioManager().speakAsAlfafa(message)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(message)
   }
 
   return (

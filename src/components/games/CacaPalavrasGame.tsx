@@ -126,7 +126,8 @@ export function CacaPalavrasGame() {
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
         const speakText = `Isso, ${childName}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
-        getAudioManager().speakAsAlfafa(speakText)
+        // Voz principal feminina
+        getAudioManager().speakPhrase(speakText)
 
         setTimeout(() => {
           nextRound()
@@ -150,7 +151,8 @@ export function CacaPalavrasGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const message = `Encontre todas as palavras que começam com a letra ${game.targetLetter}, ${childName}!`
-    getAudioManager().speakAsAlfafa(message)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(message)
   }
 
   const foundCount = game.found.size

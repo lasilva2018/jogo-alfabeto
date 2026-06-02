@@ -71,7 +71,8 @@ export function QualComecoGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
-      await getAudioManager().speakAsAlfafa(speakText)
+      // Voz principal feminina (Alice)
+      await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -84,7 +85,8 @@ export function QualComecoGame() {
 
       setTimeout(async () => {
         const speakText = `${game.example.word} começa com a letra ${game.letter}, ${childName}!`
-        await getAudioManager().speakAsAlfafa(speakText)
+        // Voz principal feminina
+        await getAudioManager().speakPhrase(speakText)
 
         setGame(prev => ({
           ...prev,
@@ -99,7 +101,8 @@ export function QualComecoGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `${game.example.word}... Qual letra começa?`
-    getAudioManager().speakAsAlfafa(speakText)
+    // Voz principal feminina
+    getAudioManager().speakPhrase(speakText)
   }
 
   return (
