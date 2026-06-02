@@ -59,8 +59,8 @@ export function QualNaoPertenceGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! Essa começa com outra letra. Muito esperto!`
-      // Voz principal feminina
-      getAudioManager().speakPhrase(speakText)
+      // Voz principal feminina - aguardamos a fala para não emendar na próxima
+      await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()

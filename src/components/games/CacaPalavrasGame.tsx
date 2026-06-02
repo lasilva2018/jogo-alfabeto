@@ -126,8 +126,8 @@ export function CacaPalavrasGame() {
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
         const speakText = `Isso, ${childName}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
-        // Voz principal feminina
-        getAudioManager().speakPhrase(speakText)
+        // Voz principal feminina - aguardamos para evitar sobreposição de áudio
+        await getAudioManager().speakPhrase(speakText)
 
         setTimeout(() => {
           nextRound()

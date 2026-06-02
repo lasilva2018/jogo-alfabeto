@@ -109,8 +109,8 @@ export function MontePalavraGame() {
 
         const fullWord = game.target.word
         const speakText = `Perfeito, ${childName}! Você montou ${fullWord} certinho! Que legal!`
-        // Voz principal feminina
-        getAudioManager().speakPhrase(speakText)
+        // Voz principal feminina - aguardamos terminar antes de avançar
+        await getAudioManager().speakPhrase(speakText)
 
         setTimeout(() => {
           nextRound()

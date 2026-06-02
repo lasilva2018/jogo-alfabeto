@@ -73,8 +73,8 @@ export function CompletePalavraGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
-      // Voz principal feminina
-      getAudioManager().speakPhrase(speakText)
+      // Voz principal feminina - aguardamos terminar para não emendar com próxima rodada
+      await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
