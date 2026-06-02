@@ -86,7 +86,7 @@ export function DesenheLetraGame() {
     canvas: HTMLCanvasElement | null,
     letter: string
   ): boolean {
-    if (!ctx || !canvas || points.length < 12) return false
+    if (!ctx || !canvas || points.length < 10) return false
 
     // Quick bbox reject: must be reasonably large and centered
     const xs = points.map(p => p.x)
@@ -103,9 +103,9 @@ export function DesenheLetraGame() {
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    // Relaxed for 4-year-olds: allow more variation in size/position
-    const minSpan = size * 0.30
-    const maxCenterOffset = size * 0.25
+    // Even more relaxed for 4-year-olds — accept drawings that are a bit smaller or slightly off-center
+    const minSpan = size * 0.25
+    const maxCenterOffset = size * 0.28
     if (drawnWidth < minSpan || drawnHeight < minSpan || centerDist > maxCenterOffset) {
       return false
     }
@@ -124,8 +124,8 @@ export function DesenheLetraGame() {
     maskCtx.textAlign = 'center'
     maskCtx.textBaseline = 'middle'
 
-    // Larger tolerance band for kids' imperfect motor skills
-    const tolerance = 18
+    // Even larger tolerance band — kids' drawings are often a bit bigger or wobbly
+    const tolerance = 22
     for (let dx = -tolerance; dx <= tolerance; dx += 3) {
       for (let dy = -tolerance; dy <= tolerance; dy += 3) {
         maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
@@ -155,12 +155,13 @@ export function DesenheLetraGame() {
       }
     }
 
-    // More lenient minimum ink and overlap for small hands
-    if (userInk < 500) return false
+    // Very lenient minimum ink — thick brush + small hands don't deposit huge amounts
+    if (userInk < 350) return false
 
     const overlapRatio = overlapInk / userInk
-    // Lowered to 25% — still requires drawing over the letter, but forgives imperfect tracing
-    return overlapRatio > 0.25
+    // Lowered to 18% — accepts decent kid attempts like the E in the image (thick, follows the shape, covers the bars)
+    // Still rejects random scribbles or drawings completely outside the letter
+    return overlapRatio > 0.18
   }
 
   function startDrawing(e: React.PointerEvent) {
