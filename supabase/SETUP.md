@@ -17,27 +17,36 @@ As variáveis já foram colocadas em `.env.local` usando o token de acesso do 1P
 
 Isso cria a tabela `children` + RLS policies corretas (cada responsável só vê os próprios filhos).
 
-## 3. Habilite Magic Link (Email)
+## 3. Habilite Magic Link (Email) e configure Redirects (IMPORTANTE!)
 
 1. No dashboard Supabase: **Authentication** → **Providers**
-2. Ative **Email**
-3. Em **Email Templates** (opcional mas recomendado): customize o template de "Magic Link"
-4. Em **URL Configuration** coloque a URL do seu site (para produção):
-   - Site URL: `https://jogo-alfabeto-beta.vercel.app` (ou sua produção)
-   - Redirect URLs: adicione `https://jogo-alfabeto-beta.vercel.app/**`
+2. Ative **Email** (para Magic Link sem senha)
+
+3. **URL Configuration** (o mais importante para o redirect funcionar corretamente):
+   - Vá em **Authentication** → **URL Configuration**
+   - **Site URL**: coloque `https://jogo-alfabeto-beta.vercel.app`
+   - **Redirect URLs**: adicione as seguintes linhas (clique em "Add URL"):
+     - `https://jogo-alfabeto-beta.vercel.app`
+     - `https://jogo-alfabeto-beta.vercel.app/**`
+   - (Opcional, para desenvolvimento local) Adicione também:
+     - `http://localhost:5173`
+     - `http://localhost:5173/**`
+
+4. Em **Email Templates** (recomendado): personalize o template de "Magic Link" se quiser.
+
+**Atenção**: Depois de mudar as URLs, pode demorar alguns segundos para propagar. Sempre peça um **novo link mágico** depois de configurar.
 
 ## 4. Variáveis no Vercel (produção)
 
-Você precisa adicionar as mesmas duas variáveis no Vercel:
+Adicione estas variáveis de ambiente no Vercel (Settings → Environment Variables):
 
-```bash
-# No terminal (após vercel login)
-cd _dev-apps_claude-code/apps/jogo-alfabeto
-vercel env add VITE_SUPABASE_URL
-vercel env add VITE_SUPABASE_ANON_KEY
-```
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SITE_URL` → `https://jogo-alfabeto-beta.vercel.app` (ou o domínio final que você for usar)
 
-Depois rode `vercel --prod` ou dispare redeploy no dashboard.
+Depois de adicionar, dispare um novo deploy (`vercel --prod` ou pelo dashboard).
+
+Dica: você pode definir valores diferentes para Preview / Production se tiver múltiplos domínios.
 
 ## 5. Testando
 

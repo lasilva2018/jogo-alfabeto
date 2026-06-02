@@ -35,6 +35,29 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
 
 export const isSupabaseEnabled = !!supabase
 
+/**
+ * Retorna a URL base do app para redirecionamentos (magic links, etc).
+ * Prioridade:
+ * 1. VITE_SITE_URL (defina no .env / Vercel)
+ * 2. window.location.origin (útil em dev e previews)
+ * 3. Fallback para o domínio beta conhecido
+ */
+export const getSiteUrl = (): string => {
+  const env = (import.meta as any).env || {};
+  const envUrl = env.VITE_SITE_URL;
+
+  if (envUrl && typeof envUrl === 'string') {
+    return envUrl.replace(/\/$/, ''); // remove trailing slash
+  }
+
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return window.location.origin;
+  }
+
+  // Fallback seguro para o beta atual
+  return 'https://jogo-alfabeto-beta.vercel.app';
+};
+
 // ============================================
 // Tipos
 // ============================================
@@ -66,7 +89,7 @@ export async function signInParentWithMagicLink(email: string): Promise<{ succes
     email: email.trim().toLowerCase(),
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: getSiteUrl(),
     },
   })
   if (error) {
