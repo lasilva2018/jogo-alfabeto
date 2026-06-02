@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GridItem {
@@ -76,7 +76,7 @@ function pickTargetLetter(): Letter {
 
 export function CacaPalavrasGame() {
   const { profile } = useChildProfile()
-  const childName = profile?.name || 'amiguinho'
+  const childName = getChildVocative(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())

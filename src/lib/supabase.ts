@@ -67,6 +67,7 @@ export interface CloudChild {
   name: string
   avatar: string
   age?: number
+  gender?: 'masculino' | 'feminino'
   stars: number
   letter_mastery: Record<string, { correct: number; attempts: number }>
   created_at: string
@@ -145,6 +146,7 @@ export async function upsertChildToCloud(profile: {
   name: string
   avatar: string
   age?: number
+  gender?: 'masculino' | 'feminino'
   stars: number
   letterMastery: Record<string, { correct: number; attempts: number }>
 }): Promise<{ success: boolean; cloudId?: string }> {
@@ -158,6 +160,7 @@ export async function upsertChildToCloud(profile: {
     name: profile.name,
     avatar: profile.avatar,
     age: profile.age,
+    gender: profile.gender,
     stars: profile.stars,
     letter_mastery: profile.letterMastery,
   }
@@ -197,6 +200,7 @@ export async function pushAllLocalToCloud(localProfiles: any[]): Promise<number>
     name: p.name,
     avatar: p.avatar,
     age: p.age,
+    gender: p.gender,
     stars: p.stars || 0,
     letter_mastery: p.letterMastery || {},
   }))

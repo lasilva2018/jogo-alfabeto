@@ -8,9 +8,24 @@ export interface ChildProfile {
   name: string
   avatar: string
   age?: number
+  gender?: 'masculino' | 'feminino'
   createdAt: string
   stars: number
   letterMastery: Record<string, { correct: number; attempts: number }>
+}
+
+/**
+ * Retorna o nome carinhoso para vocalizar:
+ * - Se a criança tem nome real cadastrado → usa o nome (mais pessoal e legal: "Muito bem, Sofia!")
+ * - Senão → "amiguinho" ou "amiguinha" de acordo com o gênero escolhido
+ */
+export function getChildVocative(profile: ChildProfile | null): string {
+  if (!profile) return 'amiguinho'
+  const name = profile.name?.trim()
+  if (name && name.length > 1 && name !== 'Amiguinho' && name !== 'Amiguinha') {
+    return name
+  }
+  return profile.gender === 'feminino' ? 'amiguinha' : 'amiguinho'
 }
 
 export interface ParentSettings {
@@ -35,7 +50,7 @@ interface ChildProfileState {
   // Computed
   profile: ChildProfile | null
 
-  createProfile: (name: string, avatar: string, age?: number) => void
+  createProfile: (name: string, avatar: string, age?: number, gender?: 'masculino' | 'feminino') => void
   switchProfile: (id: string) => void
   updateProfile: (updates: Partial<ChildProfile>) => void
   deleteProfile: (id: string) => void
@@ -79,12 +94,13 @@ export const useChildProfile = create<ChildProfileState>()(
         return profiles.find(p => p.id === currentProfileId) || null
       },
 
-      createProfile: (name: string, avatar: string, age?: number) => {
+      createProfile: (name: string, avatar: string, age?: number, gender?: 'masculino' | 'feminino') => {
         const newProfile: ChildProfile = {
           id: crypto.randomUUID(),
           name: name.trim(),
           avatar,
           age,
+          gender,
           createdAt: new Date().toISOString(),
           stars: 0,
           letterMastery: {},
@@ -269,6 +285,7 @@ export const useChildProfile = create<ChildProfileState>()(
               name: c.name,
               avatar: c.avatar,
               age: c.age,
+              gender: c.gender,
               stars: c.stars,
               letterMastery: c.letter_mastery || {},
               createdAt: c.created_at,

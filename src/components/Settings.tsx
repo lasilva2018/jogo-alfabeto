@@ -32,6 +32,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
   const [showAddForm, setShowAddForm] = useState(false)
   const [addName, setAddName] = useState('')
   const [addAge, setAddAge] = useState<number | null>(null)
+  const [addGender, setAddGender] = useState<'masculino' | 'feminino' | null>(null)
   const [addAvatar, setAddAvatar] = useState('🐘')
 
   const handleDeleteCurrent = () => {
@@ -51,9 +52,10 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
   const handleAddProfile = () => {
     const trimmed = addName.trim()
     if (trimmed.length < 2 || !addAge) return
-    createProfile(trimmed, addAvatar, addAge)
+    createProfile(trimmed, addAvatar, addAge, addGender ?? undefined)
     setAddName('')
     setAddAge(null)
+    setAddGender(null)
     setAddAvatar('🐘')
     setShowAddForm(false)
   }
@@ -154,6 +156,24 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
               </div>
 
               <div className="mb-3">
+                <div className="text-sm mb-1">Gênero (para o Alfafa falar "amiguinho" ou "amiguinha")</div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setAddGender('masculino')}
+                    className={`flex-1 py-2 rounded-2xl border text-lg ${addGender === 'masculino' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-blue-200'}`}
+                  >
+                    👦 Menino
+                  </button>
+                  <button
+                    onClick={() => setAddGender('feminino')}
+                    className={`flex-1 py-2 rounded-2xl border text-lg ${addGender === 'feminino' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white border-pink-200'}`}
+                  >
+                    👧 Menina
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-3">
                 <div className="text-sm mb-1">Avatar</div>
                 <div className="grid grid-cols-4 gap-2">
                   {['🐘','🦁','🐻','🐰','🐼','🦒','🐢','🦊'].map(av => (
@@ -170,14 +190,14 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
 
               <div className="flex gap-2">
                 <button 
-                  onClick={() => { setShowAddForm(false); setAddName(''); setAddAge(null); setAddAvatar('🐘') }}
+                  onClick={() => { setShowAddForm(false); setAddName(''); setAddAge(null); setAddGender(null); setAddAvatar('🐘') }}
                   className="flex-1 py-2 rounded-2xl border border-gray-300"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={handleAddProfile}
-                  disabled={addName.trim().length < 2 || !addAge}
+                  disabled={addName.trim().length < 2 || !addAge || !addGender}
                   className="flex-1 py-2 bg-purple-600 text-white rounded-2xl disabled:bg-gray-300"
                 >
                   Criar perfil

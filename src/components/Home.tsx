@@ -13,7 +13,7 @@ import { MinhasLetras } from './MinhasLetras'
 import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
 import { Alfafa } from './mascot/Alfafa'
-import { useChildProfile, useCurrentProfile } from '../stores/useChildProfile'
+import { useChildProfile, useCurrentProfile, getChildVocative } from '../stores/useChildProfile'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
@@ -28,13 +28,14 @@ export function Home() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
-  const childName = profile?.name || 'amiguinho'
+  const childName = getChildVocative(profile)
   const stars = profile?.stars || 0
 
   // Form simples para criar o primeiro perfil de criança (usado quando o responsável já autenticou via Supabase
   // mas ainda não tem nenhum perfil de criança cadastrado)
   const [showFirstProfileForm, setShowFirstProfileForm] = useState(false)
   const [firstName, setFirstName] = useState('')
+  const [firstGender, setFirstGender] = useState<'masculino' | 'feminino' | null>(null)
   const [firstAvatar, setFirstAvatar] = useState('🐘')
 
   const AVATAR_OPTIONS = ['🐘', '🦁', '🐻', '🐰', '🐼', '🦒', '🐢', '🦊']
@@ -44,9 +45,10 @@ export function Home() {
     if (trimmed.length < 2) return
     // Garante que a privacidade foi aceita (o responsável já viu a seção em Settings ao pedir o link)
     acceptPrivacy(true)
-    createProfileAction(trimmed, firstAvatar)
+    createProfileAction(trimmed, firstAvatar, undefined, firstGender ?? 'masculino')
     setShowFirstProfileForm(false)
     setFirstName('')
+    setFirstGender(null)
     // O createProfile já cuida de sincronizar com a nuvem se autenticado
   }
 
@@ -341,6 +343,24 @@ export function Home() {
                   autoFocus
                 />
 
+                <div>
+                  <div className="text-sm text-gray-600 mb-1 text-left">Gênero</div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setFirstGender('masculino')}
+                      className={`flex-1 py-2 rounded-2xl border text-base ${firstGender === 'masculino' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-blue-200'}`}
+                    >
+                      👦 Menino
+                    </button>
+                    <button
+                      onClick={() => setFirstGender('feminino')}
+                      className={`flex-1 py-2 rounded-2xl border text-base ${firstGender === 'feminino' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white border-pink-200'}`}
+                    >
+                      👧 Menina
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-4 gap-3">
                   {AVATAR_OPTIONS.map((av) => (
                     <button
@@ -355,14 +375,14 @@ export function Home() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setShowFirstProfileForm(false); setFirstName('') }}
+                    onClick={() => { setShowFirstProfileForm(false); setFirstName(''); setFirstGender(null) }}
                     className="flex-1 py-3 rounded-2xl border-2 border-gray-300 text-gray-600 font-medium"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleCreateFirstProfile}
-                    disabled={firstName.trim().length < 2}
+                    disabled={firstName.trim().length < 2 || !firstGender}
                     className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-2xl disabled:bg-gray-300 active:bg-purple-700"
                   >
                     Criar e começar

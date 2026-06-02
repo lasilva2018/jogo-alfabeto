@@ -1,4 +1,4 @@
-import { useCurrentProfile } from '../stores/useChildProfile'
+import { useCurrentProfile, getChildVocative } from '../stores/useChildProfile'
 import { motion } from 'framer-motion'
 import { Alfafa } from './mascot/Alfafa'
 import { getAudioManager } from '../lib/audio/AudioManager'
@@ -6,7 +6,7 @@ import { getAudioManager } from '../lib/audio/AudioManager'
 export function RewardsScreen({ onBack }: { onBack: () => void }) {
   const profile = useCurrentProfile()
   const stars = profile?.stars || 0
-  const name = profile?.name || 'amiguinho'
+  const name = getChildVocative(profile)
 
   // Visual stars (show up to 30 for now, grouped)
   const displayedStars = Math.min(stars, 30)

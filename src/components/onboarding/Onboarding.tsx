@@ -18,7 +18,8 @@ export function Onboarding() {
   const [name, setName] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState('🐘')
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
-  const [step, setStep] = useState<'welcome' | 'consent' | 'nameChoice' | 'name' | 'age' | 'avatar'>('welcome')
+  const [selectedGender, setSelectedGender] = useState<'masculino' | 'feminino' | null>(null)
+  const [step, setStep] = useState<'welcome' | 'consent' | 'nameChoice' | 'name' | 'age' | 'gender' | 'avatar'>('welcome')
   const [allowNameCollection, setAllowNameCollection] = useState(true)
   const [showPrivacy, setShowPrivacy] = useState(false)
 
@@ -41,8 +42,8 @@ export function Onboarding() {
     if (allow) {
       setStep('name')
     } else {
-      // Modo anônimo: nome genérico e vai para idade
-      setName('Amiguinho')
+      // Modo anônimo: sem nome (usaremos amiguinho/amiguinha pelo gênero)
+      setName('')
       setStep('age')
     }
   }
@@ -55,8 +56,8 @@ export function Onboarding() {
   }
 
   const handleCreateProfile = () => {
-    const finalName = allowNameCollection && name.trim().length >= 2 ? name.trim() : 'Amiguinho'
-    createProfile(finalName, selectedAvatar, selectedAge ?? undefined)
+    const finalName = allowNameCollection && name.trim().length >= 2 ? name.trim() : ''
+    createProfile(finalName, selectedAvatar, selectedAge ?? undefined, selectedGender ?? 'masculino')
     // hasCompletedOnboarding e privacyAccepted já foram setados
   }
 
@@ -72,6 +73,11 @@ export function Onboarding() {
 
   const handleAgeSelect = (age: number) => {
     setSelectedAge(age)
+    setStep('gender')
+  }
+
+  const handleGenderSelect = (gender: 'masculino' | 'feminino') => {
+    setSelectedGender(gender)
     setStep('avatar')
   }
 
@@ -222,7 +228,7 @@ export function Onboarding() {
               onClick={() => {
                 setAllowNameCollection(false)
                 acceptPrivacy(false)
-                setName('Amiguinho')
+                setName('')
                 setStep('age')
               }}
               className="mt-4 text-sm text-gray-500 underline"
@@ -268,6 +274,45 @@ export function Onboarding() {
           </motion.div>
         )}
 
+        {/* Step: Gender - para o Alfafa falar "amiguinho" ou "amiguinha" */}
+        {step === 'gender' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="text-6xl mb-4">👦 👧</div>
+            
+            <h2 className="text-3xl font-bold text-gray-800 mb-3">
+              Você é menino ou menina?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Assim o Alfafa sabe se deve dizer "amiguinho" ou "amiguinha"!
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <button
+                onClick={() => handleGenderSelect('masculino')}
+                className="py-8 bg-white border-4 border-blue-300 rounded-3xl text-2xl font-bold active:bg-blue-50 active:border-blue-500 flex flex-col items-center"
+              >
+                <span className="text-6xl mb-2">👦</span>
+                Menino
+              </button>
+              <button
+                onClick={() => handleGenderSelect('feminino')}
+                className="py-8 bg-white border-4 border-pink-300 rounded-3xl text-2xl font-bold active:bg-pink-50 active:border-pink-500 flex flex-col items-center"
+              >
+                <span className="text-6xl mb-2">👧</span>
+                Menina
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              Se preferir, depois pode usar o nome real da criança.
+            </p>
+          </motion.div>
+        )}
+
         {/* Step: Avatar */}
         {step === 'avatar' && (
           <motion.div
@@ -308,7 +353,7 @@ export function Onboarding() {
             </button>
 
             <p className="mt-4 text-sm text-gray-500">
-              Olá, <span className="font-semibold">{allowNameCollection && name.trim() ? name : 'Amiguinho'}</span>! Eu sou o Alfafa 🐘
+              Olá, <span className="font-semibold">{allowNameCollection && name.trim() ? name : (selectedGender === 'feminino' ? 'amiguinha' : 'amiguinho')}</span>! Eu sou o Alfafa 🐘
             </p>
           </motion.div>
         )}

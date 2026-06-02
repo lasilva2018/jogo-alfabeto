@@ -3,12 +3,12 @@ import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 export function DesenheLetraGame() {
   const { profile } = useChildProfile()
-  const childName = profile?.name || 'amiguinho'
+  const childName = getChildVocative(profile)
   const age = profile?.age ?? 4
 
   const [currentLetter, setCurrentLetter] = useState(() => 

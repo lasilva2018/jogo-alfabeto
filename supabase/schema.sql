@@ -11,6 +11,8 @@ create table if not exists public.children (
   avatar text not null default '🐘',
   stars integer not null default 0 check (stars >= 0),
   letter_mastery jsonb not null default '{}'::jsonb,
+  age integer,
+  gender text, -- 'masculino' | 'feminino' (para o vocativo amiguinho/amiguinha e uso do nome na voz)
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -71,6 +73,12 @@ create policy "Parents can delete their own children"
 comment on table public.children is 'Perfis de crianças vinculados a um responsável (auth.users). RLS garante que cada pai/mãe só acessa os próprios dados.';
 comment on column public.children.parent_id is 'auth.uid() do responsável. Nunca exponha este dado no client de forma que permita cross-user access.';
 comment on column public.children.letter_mastery is 'Objeto JSON com { "A": { "attempts": 12, "correct": 9 }, ... } — mesma estrutura do Zustand local.';
+
+-- ============================================================
+-- MIGRAÇÃO para versão com gender (adicione isso se a tabela já existe)
+-- ALTER TABLE public.children ADD COLUMN IF NOT EXISTS gender text;
+-- ALTER TABLE public.children ADD COLUMN IF NOT EXISTS age integer;
+-- ============================================================
 
 -- ============================================================
 -- FIM DO SCHEMA

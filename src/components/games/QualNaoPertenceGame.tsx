@@ -6,7 +6,7 @@ import {
   getOddOneOutRound, 
   OddOneOutRound 
 } from '../../data/letters'
-import { useChildProfile } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState extends OddOneOutRound {
@@ -17,7 +17,7 @@ interface GameState extends OddOneOutRound {
 
 export function QualNaoPertenceGame() {
   const { profile } = useChildProfile()
-  const childName = profile?.name || 'amiguinho'
+  const childName = getChildVocative(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
