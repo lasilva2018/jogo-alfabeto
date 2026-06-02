@@ -155,13 +155,24 @@ export function DesenheLetraGame() {
       }
     }
 
-    // Very lenient minimum ink — thick brush + small hands don't deposit huge amounts
-    if (userInk < 350) return false
-
     const overlapRatio = overlapInk / userInk
-    // Lowered to 18% — accepts decent kid attempts like the E in the image (thick, follows the shape, covers the bars)
-    // Still rejects random scribbles or drawings completely outside the letter
-    return overlapRatio > 0.18
+
+    // Safety net: if the drawing is large, well-centered, and has substantial ink,
+    // accept it even with lower overlap. This rewards real effort from 4-year-olds
+    // (big, centered scribbles that show they tried to cover the letter).
+    const isLargeAndCentered = (drawnWidth > size * 0.35) && (drawnHeight > size * 0.35) && (centerDist < size * 0.20);
+    const hasSubstantialInk = userInk > 600;
+
+    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > 0.12) {
+      return true;
+    }
+
+    // Very lenient minimum ink — thick brush + small hands don't deposit huge amounts
+    if (userInk < 350) return false;
+
+    // Main threshold: 18% overlap still requires the drawing to be mostly on the letter
+    // but is forgiving for imperfect kid motor skills.
+    return overlapRatio > 0.18;
   }
 
   function startDrawing(e: React.PointerEvent) {
