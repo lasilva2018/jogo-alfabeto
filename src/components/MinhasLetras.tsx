@@ -1,4 +1,4 @@
-import { useChildProfile, useCurrentProfile } from '../stores/useChildProfile'
+import { useCurrentProfile } from '../stores/useChildProfile'
 import { Alfafa } from './mascot/Alfafa'
 
 interface LetterCardProps {
