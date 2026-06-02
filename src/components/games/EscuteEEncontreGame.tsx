@@ -106,8 +106,9 @@ export function EscuteEEncontreGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso mesmo, ${childName}! É ${game.target.word}! Muito bem!`
-      // Voz principal feminina
-      getAudioManager().speakPhrase(speakText)
+      // Voz principal feminina - aguardamos a fala terminar antes de avançar
+      // para evitar que o áudio da próxima rodada emende com o parabenizando anterior
+      await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
         nextRound()
