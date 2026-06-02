@@ -17,7 +17,8 @@ const AVATAR_OPTIONS = [
 export function Onboarding() {
   const [name, setName] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState('🐘')
-  const [step, setStep] = useState<'welcome' | 'consent' | 'nameChoice' | 'name' | 'avatar'>('welcome')
+  const [selectedAge, setSelectedAge] = useState<number | null>(null)
+  const [step, setStep] = useState<'welcome' | 'consent' | 'nameChoice' | 'name' | 'age' | 'avatar'>('welcome')
   const [allowNameCollection, setAllowNameCollection] = useState(true)
   const [showPrivacy, setShowPrivacy] = useState(false)
 
@@ -40,9 +41,9 @@ export function Onboarding() {
     if (allow) {
       setStep('name')
     } else {
-      // Modo anônimo: nome genérico e vai direto para avatar
+      // Modo anônimo: nome genérico e vai para idade
       setName('Amiguinho')
-      setStep('avatar')
+      setStep('age')
     }
   }
 
@@ -50,12 +51,12 @@ export function Onboarding() {
     const trimmed = name.trim()
     if (trimmed.length < 2) return
     // Já aceitamos a política no passo anterior (nameChoice)
-    setStep('avatar')
+    setStep('age')
   }
 
   const handleCreateProfile = () => {
     const finalName = allowNameCollection && name.trim().length >= 2 ? name.trim() : 'Amiguinho'
-    createProfile(finalName, selectedAvatar)
+    createProfile(finalName, selectedAvatar, selectedAge ?? undefined)
     // hasCompletedOnboarding e privacyAccepted já foram setados
   }
 
@@ -67,6 +68,11 @@ export function Onboarding() {
         handleCreateProfile()
       }
     }
+  }
+
+  const handleAgeSelect = (age: number) => {
+    setSelectedAge(age)
+    setStep('avatar')
   }
 
   return (
@@ -217,12 +223,48 @@ export function Onboarding() {
                 setAllowNameCollection(false)
                 acceptPrivacy(false)
                 setName('Amiguinho')
-                setStep('avatar')
+                setStep('age')
               }}
               className="mt-4 text-sm text-gray-500 underline"
             >
               Prefiro jogar sem nome
             </button>
+          </motion.div>
+        )}
+
+        {/* Step: Age - para ajustar exigência no jogo Desenhe a Letra */}
+        {step === 'age' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="text-6xl mb-4">🎂</div>
+            
+            <h2 className="text-3xl font-bold text-gray-800 mb-3">
+              Quantos aninhos você tem?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Isso ajuda o Alfafa a ajustar o nível dos jogos!
+            </p>
+
+            <div className="grid grid-cols-5 gap-3 mb-8">
+              {[3,4,5,6,7].map((a) => (
+                <button
+                  key={a}
+                  onClick={() => handleAgeSelect(a)}
+                  className="text-4xl py-6 bg-white border-4 border-purple-200 rounded-3xl font-bold active:bg-purple-100 active:border-purple-500"
+                >
+                  {a}
+                </button>
+              ))}
+              <button
+                onClick={() => handleAgeSelect(8)}
+                className="text-3xl py-6 bg-white border-4 border-purple-200 rounded-3xl font-bold active:bg-purple-100 active:border-purple-500 col-span-1"
+              >
+                8+
+              </button>
+            </div>
           </motion.div>
         )}
 

@@ -9,6 +9,7 @@ import { AlfafaMini } from '../mascot/Alfafa'
 export function DesenheLetraGame() {
   const { profile } = useChildProfile()
   const childName = profile?.name || 'amiguinho'
+  const age = profile?.age ?? 4
 
   const [currentLetter, setCurrentLetter] = useState(() => 
     AVAILABLE_LETTERS[Math.floor(Math.random() * AVAILABLE_LETTERS.length)]
@@ -84,11 +85,12 @@ export function DesenheLetraGame() {
     size: number, 
     ctx: CanvasRenderingContext2D | null, 
     canvas: HTMLCanvasElement | null,
-    letter: string
+    letter: string,
+    childAge: number = 4
   ): boolean {
-    if (!ctx || !canvas || points.length < 10) return false
+    if (!ctx || !canvas || points.length < 8) return false
 
-    // Quick bbox reject: must be reasonably large and centered
+    // Quick bbox reject
     const xs = points.map(p => p.x)
     const ys = points.map(p => p.y)
     const minX = Math.min(...xs)
@@ -103,16 +105,65 @@ export function DesenheLetraGame() {
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    // Very relaxed for 4-year-olds
-    const minSpan = size * 0.22
-    const maxCenterOffset = size * 0.30
-    if (drawnWidth < minSpan || drawnHeight < minSpan || centerDist > maxCenterOffset) {
+    // Compute dynamic thresholds based on age (younger = much more lenient)
+    let minSpan = 0.22
+    let maxCenterOffset = 0.30
+    let tolerance = 28
+    let minInk = 300
+    let mainOverlap = 0.15
+    let safetySpan = 0.30
+    let safetyCenter = 0.25
+    let safetyInk = 450
+    let safetyOverlap = 0.08
+
+    if (childAge <= 3) {
+      minSpan = 0.15
+      maxCenterOffset = 0.38
+      tolerance = 35
+      minInk = 180
+      mainOverlap = 0.08
+      safetySpan = 0.22
+      safetyCenter = 0.32
+      safetyInk = 280
+      safetyOverlap = 0.05
+    } else if (childAge === 4) {
+      minSpan = 0.20
+      maxCenterOffset = 0.32
+      tolerance = 30
+      minInk = 250
+      mainOverlap = 0.12
+      safetySpan = 0.28
+      safetyCenter = 0.27
+      safetyInk = 380
+      safetyOverlap = 0.07
+    } else if (childAge === 5) {
+      minSpan = 0.25
+      maxCenterOffset = 0.26
+      tolerance = 24
+      minInk = 380
+      mainOverlap = 0.18
+      safetySpan = 0.32
+      safetyCenter = 0.22
+      safetyInk = 520
+      safetyOverlap = 0.10
+    } else {
+      // 6+ more precision expected
+      minSpan = 0.30
+      maxCenterOffset = 0.20
+      tolerance = 18
+      minInk = 520
+      mainOverlap = 0.22
+      safetySpan = 0.38
+      safetyCenter = 0.18
+      safetyInk = 680
+      safetyOverlap = 0.14
+    }
+
+    if (drawnWidth < size * minSpan || drawnHeight < size * minSpan || centerDist > size * maxCenterOffset) {
       return false
     }
 
-    // Main validation: check how much of the user's dark ink overlaps the letter area.
-    // We create a "tolerance mask" by drawing the letter multiple times with small offsets.
-    // This creates a thick band around the letter shape where drawing is "good".
+    // Build tolerance mask (thick stroke + fill + generous offsets)
     const maskCanvas = document.createElement('canvas')
     maskCanvas.width = size
     maskCanvas.height = size
@@ -126,12 +177,9 @@ export function DesenheLetraGame() {
     maskCtx.textBaseline = 'middle'
     maskCtx.lineWidth = 28
 
-    // Draw thick outline + fill for better matching when kids trace the letter contours
     maskCtx.strokeText(letter, size / 2, size / 2 + 10)
     maskCtx.fillText(letter, size / 2, size / 2 + 10)
 
-    // Very generous tolerance band for 4yo drawings
-    const tolerance = 28
     for (let dx = -tolerance; dx <= tolerance; dx += 4) {
       for (let dy = -tolerance; dy <= tolerance; dy += 4) {
         maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
@@ -151,10 +199,8 @@ export function DesenheLetraGame() {
       const b = userData[i + 2]
       const a = userData[i + 3]
 
-      // Count dark purple user strokes (the drawn ink)
       if (a > 200 && b > 190 && r > 60 && g < 140) {
         userInk++
-        // Check if this pixel is inside the letter mask (tolerance area)
         const ma = maskData[i + 3]
         if (ma > 50) {
           overlapInk++
@@ -162,23 +208,19 @@ export function DesenheLetraGame() {
       }
     }
 
-    const overlapRatio = overlapInk / userInk
+    const overlapRatio = overlapInk / Math.max(userInk, 1)
 
-    // Safety net: if the drawing is reasonably large, centered, and has decent ink,
-    // accept even with quite low overlap. Rewards effort (big centered drawings)
-    // even if the shape isn't perfect.
-    const isLargeAndCentered = (drawnWidth > size * 0.30) && (drawnHeight > size * 0.30) && (centerDist < size * 0.25);
-    const hasSubstantialInk = userInk > 450;
+    // Safety net based on age-adjusted params
+    const isLargeAndCentered = (drawnWidth > size * safetySpan) && (drawnHeight > size * safetySpan) && (centerDist < size * safetyCenter)
+    const hasSubstantialInk = userInk > safetyInk
 
-    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > 0.08) {
-      return true;
+    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > safetyOverlap) {
+      return true
     }
 
-    // Lenient minimum ink
-    if (userInk < 300) return false;
+    if (userInk < minInk) return false
 
-    // Main threshold lowered further
-    return overlapRatio > 0.15;
+    return overlapRatio > mainOverlap
   }
 
   function startDrawing(e: React.PointerEvent) {
@@ -226,7 +268,7 @@ export function DesenheLetraGame() {
     const canvasEl = canvasRef.current
     const ctx = ctxRef.current
     const size = canvasEl?.width || 300
-    const isGood = isDrawingGood(drawnPoints, size, ctx, canvasEl, currentLetter)
+    const isGood = isDrawingGood(drawnPoints, size, ctx, canvasEl, currentLetter, age)
 
     setShowFeedback(true)
     setLastWasGood(isGood)

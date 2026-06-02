@@ -66,6 +66,7 @@ export interface CloudChild {
   parent_id: string
   name: string
   avatar: string
+  age?: number
   stars: number
   letter_mastery: Record<string, { correct: number; attempts: number }>
   created_at: string
@@ -143,6 +144,7 @@ export async function upsertChildToCloud(profile: {
   id?: string
   name: string
   avatar: string
+  age?: number
   stars: number
   letterMastery: Record<string, { correct: number; attempts: number }>
 }): Promise<{ success: boolean; cloudId?: string }> {
@@ -155,6 +157,7 @@ export async function upsertChildToCloud(profile: {
     parent_id: user.id,
     name: profile.name,
     avatar: profile.avatar,
+    age: profile.age,
     stars: profile.stars,
     letter_mastery: profile.letterMastery,
   }
@@ -193,6 +196,7 @@ export async function pushAllLocalToCloud(localProfiles: any[]): Promise<number>
     parent_id: user.id,
     name: p.name,
     avatar: p.avatar,
+    age: p.age,
     stars: p.stars || 0,
     letter_mastery: p.letterMastery || {},
   }))
@@ -218,6 +222,7 @@ export async function syncOnLogin(localProfiles: any[]): Promise<{ profiles: any
       id: c.id,
       name: c.name,
       avatar: c.avatar,
+      age: c.age,
       stars: c.stars,
       letterMastery: c.letter_mastery || {},
       createdAt: c.created_at,
@@ -233,6 +238,7 @@ export async function syncOnLogin(localProfiles: any[]): Promise<{ profiles: any
         id: c.id,
         name: c.name,
         avatar: c.avatar,
+        age: c.age,
         stars: c.stars,
         letterMastery: c.letter_mastery || {},
         createdAt: c.created_at,

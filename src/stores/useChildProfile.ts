@@ -7,6 +7,7 @@ export interface ChildProfile {
   id: string
   name: string
   avatar: string
+  age?: number
   createdAt: string
   stars: number
   letterMastery: Record<string, { correct: number; attempts: number }>
@@ -34,7 +35,7 @@ interface ChildProfileState {
   // Computed
   profile: ChildProfile | null
 
-  createProfile: (name: string, avatar: string) => void
+  createProfile: (name: string, avatar: string, age?: number) => void
   switchProfile: (id: string) => void
   updateProfile: (updates: Partial<ChildProfile>) => void
   deleteProfile: (id: string) => void
@@ -78,11 +79,12 @@ export const useChildProfile = create<ChildProfileState>()(
         return profiles.find(p => p.id === currentProfileId) || null
       },
 
-      createProfile: (name: string, avatar: string) => {
+      createProfile: (name: string, avatar: string, age?: number) => {
         const newProfile: ChildProfile = {
           id: crypto.randomUUID(),
           name: name.trim(),
           avatar,
+          age,
           createdAt: new Date().toISOString(),
           stars: 0,
           letterMastery: {},
@@ -266,6 +268,7 @@ export const useChildProfile = create<ChildProfileState>()(
               id: c.id,
               name: c.name,
               avatar: c.avatar,
+              age: c.age,
               stars: c.stars,
               letterMastery: c.letter_mastery || {},
               createdAt: c.created_at,

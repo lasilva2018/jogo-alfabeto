@@ -20,12 +20,19 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
     signInWithEmail,
     signOut,
     syncNow,
+    createProfile,
   } = useChildProfile()
 
   const [showPrivacy, setShowPrivacy] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
   const [emailInput, setEmailInput] = useState('')
   const [authMessage, setAuthMessage] = useState('')
+
+  // Add new child form
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addName, setAddName] = useState('')
+  const [addAge, setAddAge] = useState<number | null>(null)
+  const [addAvatar, setAddAvatar] = useState('🐘')
 
   const handleDeleteCurrent = () => {
     if (!currentProfileId) return
@@ -39,6 +46,16 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
       clearAllData()
       onBack()
     }
+  }
+
+  const handleAddProfile = () => {
+    const trimmed = addName.trim()
+    if (trimmed.length < 2 || !addAge) return
+    createProfile(trimmed, addAvatar, addAge)
+    setAddName('')
+    setAddAge(null)
+    setAddAvatar('🐘')
+    setShowAddForm(false)
   }
 
   return (
@@ -75,7 +92,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
                 <div className="text-4xl">{p.avatar}</div>
                 <div className="flex-1">
                   <div className="font-semibold text-lg">{p.name}</div>
-                  <div className="text-sm text-gray-500">{p.stars} estrelinhas</div>
+                  <div className="text-sm text-gray-500">{p.age ? `${p.age} anos • ` : ''}{p.stars} estrelinhas</div>
                 </div>
                 {p.id === currentProfileId && (
                   <div className="text-purple-600 font-medium text-sm">Ativo</div>
@@ -99,6 +116,75 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
               Apagar tudo
             </button>
           </div>
+
+          {!showAddForm && (
+            <button 
+              onClick={() => setShowAddForm(true)}
+              className="w-full mt-3 py-3 rounded-2xl bg-purple-100 text-purple-700 font-medium active:bg-purple-200"
+            >
+              + Adicionar novo perfil
+            </button>
+          )}
+
+          {showAddForm && (
+            <div className="mt-4 p-4 border-2 border-purple-200 rounded-3xl bg-purple-50">
+              <div className="font-semibold mb-3">Novo perfil</div>
+              
+              <input
+                type="text"
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                placeholder="Nome ou apelido"
+                className="w-full mb-3 px-4 py-2 rounded-2xl border-2 border-purple-200 text-lg"
+              />
+
+              <div className="mb-3">
+                <div className="text-sm mb-1">Idade</div>
+                <div className="flex gap-2 flex-wrap">
+                  {[3,4,5,6,7,8].map(a => (
+                    <button
+                      key={a}
+                      onClick={() => setAddAge(a)}
+                      className={`px-4 py-1 rounded-2xl border ${addAge === a ? 'bg-purple-600 text-white border-purple-600' : 'bg-white border-purple-200'}`}
+                    >
+                      {a}{a===8 ? '+' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="text-sm mb-1">Avatar</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {['🐘','🦁','🐻','🐰','🐼','🦒','🐢','🦊'].map(av => (
+                    <button
+                      key={av}
+                      onClick={() => setAddAvatar(av)}
+                      className={`text-3xl p-2 rounded-2xl border-2 ${addAvatar === av ? 'border-purple-500 bg-purple-100' : 'border-gray-200'}`}
+                    >
+                      {av}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => { setShowAddForm(false); setAddName(''); setAddAge(null); setAddAvatar('🐘') }}
+                  className="flex-1 py-2 rounded-2xl border border-gray-300"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleAddProfile}
+                  disabled={addName.trim().length < 2 || !addAge}
+                  className="flex-1 py-2 bg-purple-600 text-white rounded-2xl disabled:bg-gray-300"
+                >
+                  Criar perfil
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Premium / Monetização */}
