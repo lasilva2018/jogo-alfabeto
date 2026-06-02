@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useChildProfile } from '../../stores/useChildProfile'
+import { PrivacyPolicy } from '../PrivacyPolicy'
 
 const AVATAR_OPTIONS = [
   '🐘', // Alfafa (elephant)
@@ -16,22 +17,46 @@ const AVATAR_OPTIONS = [
 export function Onboarding() {
   const [name, setName] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState('🐘')
-  const [step, setStep] = useState<'welcome' | 'name' | 'avatar'>('welcome')
-  const createProfile = useChildProfile((state) => state.createProfile)
+  const [step, setStep] = useState<'welcome' | 'consent' | 'nameChoice' | 'name' | 'avatar'>('welcome')
+  const [allowNameCollection, setAllowNameCollection] = useState(true)
+  const [showPrivacy, setShowPrivacy] = useState(false)
+
+  const { createProfile, acceptPrivacy } = useChildProfile()
 
   const handleStart = () => {
-    setStep('name')
+    setStep('consent')
+  }
+
+  // Called when user clicks "Li e aceito" inside the full PrivacyPolicy
+  const handlePrivacyAccepted = () => {
+    setShowPrivacy(false)
+    setStep('nameChoice')
+  }
+
+  const handleChooseAllowName = (allow: boolean) => {
+    setAllowNameCollection(allow)
+    acceptPrivacy(allow) // marca consentimento explícito do responsável + flag de coleta de nome
+
+    if (allow) {
+      setStep('name')
+    } else {
+      // Modo anônimo: nome genérico e vai direto para avatar
+      setName('Amiguinho')
+      setStep('avatar')
+    }
   }
 
   const handleNameSubmit = () => {
-    if (name.trim().length < 2) return
+    const trimmed = name.trim()
+    if (trimmed.length < 2) return
+    // Já aceitamos a política no passo anterior (nameChoice)
     setStep('avatar')
   }
 
   const handleCreateProfile = () => {
-    if (name.trim().length < 2) return
-    
-    createProfile(name.trim(), selectedAvatar)
+    const finalName = allowNameCollection && name.trim().length >= 2 ? name.trim() : 'Amiguinho'
+    createProfile(finalName, selectedAvatar)
+    // hasCompletedOnboarding e privacyAccepted já foram setados
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -71,23 +96,102 @@ export function Onboarding() {
             >
               Vamos começar!
             </button>
+
+            <p className="mt-6 text-xs text-gray-500">
+              Para crianças de 4 a 6 anos • Feito com carinho e privacidade
+            </p>
           </motion.div>
         )}
 
-        {/* Step: Name */}
+        {/* Step: Consent - Obrigatório para LGPD / apps infantis */}
+        {step === 'consent' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="text-6xl mb-4">🛡️</div>
+            
+            <h2 className="text-3xl font-bold text-gray-800 mb-3">
+              Antes de começar...
+            </h2>
+            <p className="text-lg text-gray-600 mb-6 leading-snug">
+              Este é um aplicativo para crianças pequenas.<br />
+              Os responsáveis precisam aceitar nossa <strong>Política de Privacidade</strong>.
+            </p>
+
+            <div className="bg-white rounded-3xl p-6 mb-6 text-left border border-purple-100">
+              <p className="text-sm text-gray-700 mb-4">
+                Coletamos apenas: nome/apelido (opcional), avatar e progresso nos jogos. 
+                Tudo fica no aparelho da criança. Nunca vendemos dados. 
+                Você pode apagar tudo a qualquer momento.
+              </p>
+              <button
+                onClick={() => setShowPrivacy(true)}
+                className="w-full py-4 rounded-3xl border-2 border-purple-200 text-purple-700 font-semibold active:bg-purple-50"
+              >
+                Ler a Política de Privacidade completa
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              Ao continuar você confirma que é responsável pela criança e concorda com o tratamento de dados conforme a LGPD.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Step: Name Choice (após aceitar a política) */}
+        {step === 'nameChoice' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="text-6xl mb-4">👋</div>
+            
+            <h2 className="text-3xl font-bold text-gray-800 mb-3">
+              Quer personalizar com nome?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              O Alfafa pode chamar a criança pelo nome ou apelido para deixar mais carinhoso.
+            </p>
+
+            <div className="space-y-4">
+              <button
+                onClick={() => handleChooseAllowName(true)}
+                className="w-full py-6 bg-purple-600 text-white text-2xl font-bold rounded-3xl active:bg-purple-700"
+              >
+                Sim, usar nome ou apelido
+              </button>
+
+              <button
+                onClick={() => handleChooseAllowName(false)}
+                className="w-full py-6 bg-white text-gray-700 text-xl font-semibold rounded-3xl border-2 border-gray-200 active:bg-gray-50"
+              >
+                Não, jogar de forma anônima
+              </button>
+            </div>
+
+            <p className="mt-6 text-xs text-gray-500">
+              Você pode mudar esta preferência depois nas Configurações.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Step: Name (só se permitiu coleta de nome) */}
         {step === 'name' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="text-7xl mb-6">👋</div>
+            <div className="text-7xl mb-6">✏️</div>
             
             <h2 className="text-3xl font-bold text-gray-800 mb-3">
-              Como você se chama?
+              Qual o nome ou apelido?
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Alfafa quer saber seu nome!
+              O Alfafa vai usar isso para falar com carinho.
             </p>
 
             <input
@@ -95,7 +199,7 @@ export function Onboarding() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Seu nome aqui"
+              placeholder="Ex: Bia, Léo, Sofia..."
               className="w-full text-4xl text-center py-6 px-8 rounded-3xl border-4 border-purple-200 focus:border-purple-500 outline-none mb-8 font-medium"
               autoFocus
             />
@@ -106,6 +210,18 @@ export function Onboarding() {
               className="button-large w-full bg-purple-600 text-white text-3xl font-bold disabled:bg-gray-300 disabled:text-gray-500 active:bg-purple-700"
             >
               Continuar
+            </button>
+
+            <button
+              onClick={() => {
+                setAllowNameCollection(false)
+                acceptPrivacy(false)
+                setName('Amiguinho')
+                setStep('avatar')
+              }}
+              className="mt-4 text-sm text-gray-500 underline"
+            >
+              Prefiro jogar sem nome
             </button>
           </motion.div>
         )}
@@ -150,11 +266,20 @@ export function Onboarding() {
             </button>
 
             <p className="mt-4 text-sm text-gray-500">
-              Olá, <span className="font-semibold">{name}</span>! Eu sou o Alfafa 🐘
+              Olá, <span className="font-semibold">{allowNameCollection && name.trim() ? name : 'Amiguinho'}</span>! Eu sou o Alfafa 🐘
             </p>
           </motion.div>
         )}
       </div>
+
+      {/* Full Privacy Policy Modal (usado no passo de consent) */}
+      {showPrivacy && (
+        <PrivacyPolicy
+          onAccept={handlePrivacyAccepted}
+          onClose={() => setShowPrivacy(false)}
+          showAcceptButton={true}
+        />
+      )}
     </div>
   )
 }

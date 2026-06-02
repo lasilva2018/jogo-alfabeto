@@ -71,12 +71,7 @@ export function QualComecoGame() {
       await getAudioManager().playSuccess()
 
       const speakText = `Isso, ${childName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
-      const audio = getAudioManager() as any
-      if (audio.speakAsAlfafa) {
-        await audio.speakAsAlfafa(speakText)
-      } else {
-        await getAudioManager().speakPhrase(speakText)
-      }
+      await getAudioManager().speakAsAlfafa(speakText)
 
       setTimeout(() => {
         nextRound()
@@ -89,12 +84,7 @@ export function QualComecoGame() {
 
       setTimeout(async () => {
         const speakText = `${game.example.word} começa com a letra ${game.letter}, ${childName}!`
-        const audio2 = getAudioManager() as any
-        if (audio2.speakAsAlfafa) {
-          await audio2.speakAsAlfafa(speakText)
-        } else {
-          await getAudioManager().speakPhrase(speakText)
-        }
+        await getAudioManager().speakAsAlfafa(speakText)
 
         setGame(prev => ({
           ...prev,
@@ -109,12 +99,7 @@ export function QualComecoGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `${game.example.word}... Qual letra começa?`
-    const audio3 = getAudioManager() as any
-    if (audio3.speakAsAlfafa) {
-      audio3.speakAsAlfafa(speakText)
-    } else {
-      getAudioManager().speakPhrase(speakText)
-    }
+    getAudioManager().speakAsAlfafa(speakText)
   }
 
   return (

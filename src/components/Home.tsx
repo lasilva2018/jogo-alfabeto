@@ -10,19 +10,22 @@ import { EscuteEEncontreGame } from './games/EscuteEEncontreGame'
 import { CacaPalavrasGame } from './games/CacaPalavrasGame'
 import { RewardsScreen } from './RewardsScreen'
 import { MinhasLetras } from './MinhasLetras'
+import { Settings } from './Settings'
+import { PremiumScreen } from './PremiumScreen'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile } from '../stores/useChildProfile'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'settings' | 'premium'
 
 export function Home() {
-  const { profile } = useChildProfile()
+  const { profile, parentSettings } = useChildProfile()
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
   const childName = profile?.name || 'amiguinho'
   const stars = profile?.stars || 0
+  const isPremium = parentSettings?.isPremium || false
 
   // Recomendação inteligente baseada no mastery real da criança
   const getWeakLetters = (prof: any) => {
@@ -222,6 +225,19 @@ export function Home() {
     )
   }
 
+  if (currentScreen === 'settings') {
+    return <Settings onBack={() => setCurrentScreen('home')} onOpenPremium={() => setCurrentScreen('premium')} />
+  }
+
+  if (currentScreen === 'premium') {
+    return (
+      <PremiumScreen 
+        onBack={() => setCurrentScreen('home')} 
+        onUnlockSuccess={() => setCurrentScreen('home')} 
+      />
+    )
+  }
+
   if (currentScreen === 'rewards') {
     return <RewardsScreen onBack={() => setCurrentScreen('home')} />
   }
@@ -248,15 +264,26 @@ export function Home() {
         >
           <Alfafa mood="happy" size="lg" />
         </div>
-        <div className="pt-2">
-          <div className="text-purple-600 font-medium">Olá, {childName}!</div>
-          <div className="text-3xl font-bold text-gray-800 leading-tight">O que vamos<br />brincar hoje?</div>
+        <div className="pt-2 flex-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-purple-600 font-medium">Olá, {childName}!</div>
+              <div className="text-3xl font-bold text-gray-800 leading-tight">O que vamos<br />brincar hoje?</div>
+            </div>
+            <button 
+              onClick={() => setCurrentScreen('settings')}
+              className="text-3xl p-2 -mr-2 active:opacity-70"
+              aria-label="Configurações e privacidade"
+            >
+              ⚙️
+            </button>
+          </div>
           <div className="text-xs text-purple-500 mt-0.5">
             {profile?.letterMastery ? Object.keys(profile.letterMastery).length : 0} letras praticadas • {stars} estrelinha{stars !== 1 ? 's' : ''}
           </div>
           {hasWeakLetters && (
             <div className="text-xs text-amber-600 mt-1 font-medium">
-              Hoje o Alfafa recomenda praticar: {weakLetters.join(' e ')} ✨ Jogue Monte a Palavra ou Caça às Palavras!
+              Hoje o Alfafa recomenda praticar: {weakLetters.join(' e ')} ✨
             </div>
           )}
         </div>
@@ -340,10 +367,16 @@ export function Home() {
           </div>
         </button>
 
-        {/* Game 6 - Qual Não Pertence? (discriminação) */}
+        {/* Game 6 - Qual Não Pertence? (discriminação) - Premium */}
         <button
-          onClick={() => setCurrentScreen('qual-nao-pertence')}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-rose-200 active:scale-[0.985] transition-transform text-left"
+          onClick={() => {
+            if (!isPremium) {
+              setCurrentScreen('premium')
+              return
+            }
+            setCurrentScreen('qual-nao-pertence')
+          }}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-rose-200 active:scale-[0.985] transition-transform text-left relative"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🧐</div>
@@ -352,12 +385,21 @@ export function Home() {
               <div className="text-lg text-gray-600 mt-1">Ache o diferente!</div>
             </div>
           </div>
+          {!isPremium && (
+            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
+          )}
         </button>
 
-        {/* Game 7 - Monte a Palavra (sequenciação) */}
+        {/* Game 7 - Monte a Palavra (sequenciação) - Premium */}
         <button
-          onClick={() => setCurrentScreen('monte-palavra')}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-violet-200 active:scale-[0.985] transition-transform text-left"
+          onClick={() => {
+            if (!isPremium) {
+              setCurrentScreen('premium')
+              return
+            }
+            setCurrentScreen('monte-palavra')
+          }}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-violet-200 active:scale-[0.985] transition-transform text-left relative"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🔡</div>
@@ -369,6 +411,9 @@ export function Home() {
               )}
             </div>
           </div>
+          {!isPremium && (
+            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
+          )}
         </button>
 
         {/* Game 8 - Jogo da Memória (associação) */}
@@ -399,10 +444,16 @@ export function Home() {
           </div>
         </button>
 
-        {/* Game 10 - Caça às Palavras (mais avançado) */}
+        {/* Game 10 - Caça às Palavras (mais avançado) - Premium */}
         <button
-          onClick={() => setCurrentScreen('caca-palavras')}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-amber-200 active:scale-[0.985] transition-transform text-left"
+          onClick={() => {
+            if (!isPremium) {
+              setCurrentScreen('premium')
+              return
+            }
+            setCurrentScreen('caca-palavras')
+          }}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-amber-200 active:scale-[0.985] transition-transform text-left relative"
         >
           <div className="flex items-center gap-5">
             <div className="text-7xl">🔎</div>
@@ -414,6 +465,9 @@ export function Home() {
               )}
             </div>
           </div>
+          {!isPremium && (
+            <div className="absolute top-3 right-3 text-[10px] bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium">Premium</div>
+          )}
         </button>
 
         {/* Rewards Button */}
