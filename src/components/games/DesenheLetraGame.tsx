@@ -159,11 +159,8 @@ export function DesenheLetraGame() {
       safetyOverlap = 0.14
     }
 
-    if (drawnWidth < size * minSpan || drawnHeight < size * minSpan || centerDist > size * maxCenterOffset) {
-      return false
-    }
-
-    // Build tolerance mask (thick stroke + fill + generous offsets)
+    // Build tolerance mask and calculate ink EARLY so we can short-circuit for young kids
+    // before any bbox that might reject small drawings from 3yo
     const maskCanvas = document.createElement('canvas')
     maskCanvas.width = size
     maskCanvas.height = size
@@ -214,8 +211,13 @@ export function DesenheLetraGame() {
     // For 3 years old and under: THE EASIEST POSSIBLE.
     // Accept almost ANY drawing that puts some purple on the canvas.
     // For 3yo, letters will be very rough and simple. The goal is to encourage trying and build confidence.
+    // We check this BEFORE any strict bbox, so even small or off-center drawings from 3yo are accepted.
     if (childAge <= 3) {
       if (userInk > 5) return true;  // if they drew anything visible at all, it's a win
+    }
+
+    if (drawnWidth < size * minSpan || drawnHeight < size * minSpan || centerDist > size * maxCenterOffset) {
+      return false
     }
 
     // Safety net based on age-adjusted params
