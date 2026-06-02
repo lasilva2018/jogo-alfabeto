@@ -103,9 +103,9 @@ export function DesenheLetraGame() {
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    // Even more relaxed for 4-year-olds — accept drawings that are a bit smaller or slightly off-center
-    const minSpan = size * 0.25
-    const maxCenterOffset = size * 0.28
+    // Very relaxed for 4-year-olds
+    const minSpan = size * 0.22
+    const maxCenterOffset = size * 0.30
     if (drawnWidth < minSpan || drawnHeight < minSpan || centerDist > maxCenterOffset) {
       return false
     }
@@ -120,15 +120,22 @@ export function DesenheLetraGame() {
     if (!maskCtx) return false
 
     maskCtx.fillStyle = 'black'
+    maskCtx.strokeStyle = 'black'
     maskCtx.font = `bold ${size * 0.72}px system-ui, sans-serif`
     maskCtx.textAlign = 'center'
     maskCtx.textBaseline = 'middle'
+    maskCtx.lineWidth = 28
 
-    // Even larger tolerance band — kids' drawings are often a bit bigger or wobbly
-    const tolerance = 22
-    for (let dx = -tolerance; dx <= tolerance; dx += 3) {
-      for (let dy = -tolerance; dy <= tolerance; dy += 3) {
+    // Draw thick outline + fill for better matching when kids trace the letter contours
+    maskCtx.strokeText(letter, size / 2, size / 2 + 10)
+    maskCtx.fillText(letter, size / 2, size / 2 + 10)
+
+    // Very generous tolerance band for 4yo drawings
+    const tolerance = 28
+    for (let dx = -tolerance; dx <= tolerance; dx += 4) {
+      for (let dy = -tolerance; dy <= tolerance; dy += 4) {
         maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
+        maskCtx.strokeText(letter, size / 2 + dx, size / 2 + 10 + dy)
       }
     }
 
@@ -157,22 +164,21 @@ export function DesenheLetraGame() {
 
     const overlapRatio = overlapInk / userInk
 
-    // Safety net: if the drawing is large, well-centered, and has substantial ink,
-    // accept it even with lower overlap. This rewards real effort from 4-year-olds
-    // (big, centered scribbles that show they tried to cover the letter).
-    const isLargeAndCentered = (drawnWidth > size * 0.35) && (drawnHeight > size * 0.35) && (centerDist < size * 0.20);
-    const hasSubstantialInk = userInk > 600;
+    // Safety net: if the drawing is reasonably large, centered, and has decent ink,
+    // accept even with quite low overlap. Rewards effort (big centered drawings)
+    // even if the shape isn't perfect.
+    const isLargeAndCentered = (drawnWidth > size * 0.30) && (drawnHeight > size * 0.30) && (centerDist < size * 0.25);
+    const hasSubstantialInk = userInk > 450;
 
-    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > 0.12) {
+    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > 0.08) {
       return true;
     }
 
-    // Very lenient minimum ink — thick brush + small hands don't deposit huge amounts
-    if (userInk < 350) return false;
+    // Lenient minimum ink
+    if (userInk < 300) return false;
 
-    // Main threshold: 18% overlap still requires the drawing to be mostly on the letter
-    // but is forgiving for imperfect kid motor skills.
-    return overlapRatio > 0.18;
+    // Main threshold lowered further
+    return overlapRatio > 0.15;
   }
 
   function startDrawing(e: React.PointerEvent) {
