@@ -79,57 +79,87 @@ export function DesenheLetraGame() {
     setLastWasGood(true)
   }
 
-  function isDrawingGood(points: {x: number; y: number}[], size: number, ctx: CanvasRenderingContext2D | null, canvas: HTMLCanvasElement | null): boolean {
-    if (!ctx || !canvas || points.length < 20) return false
+  function isDrawingGood(
+    points: {x: number; y: number}[], 
+    size: number, 
+    ctx: CanvasRenderingContext2D | null, 
+    canvas: HTMLCanvasElement | null,
+    letter: string
+  ): boolean {
+    if (!ctx || !canvas || points.length < 15) return false
 
+    // Quick bbox reject: must be reasonably large and centered
     const xs = points.map(p => p.x)
     const ys = points.map(p => p.y)
-
     const minX = Math.min(...xs)
     const maxX = Math.max(...xs)
     const minY = Math.min(...ys)
     const maxY = Math.max(...ys)
-
     const drawnWidth = maxX - minX
     const drawnHeight = maxY - minY
-
     const cx = (minX + maxX) / 2
     const cy = (minY + maxY) / 2
     const canvasCx = size / 2
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    // Stricter validation so it doesn't accept "anything":
-    // - Enough stroke points
-    // - Must span a LARGE portion of the canvas (kids should try to cover the letter)
-    // - Must be well centered on the letter area
-    const minSpan = size * 0.42
-    const maxCenterOffset = size * 0.18
-
+    const minSpan = size * 0.35
+    const maxCenterOffset = size * 0.22
     if (drawnWidth < minSpan || drawnHeight < minSpan || centerDist > maxCenterOffset) {
       return false
     }
 
-    // Pixel ink check: count how much dark purple ink was actually drawn.
-    // This is the main "you actually drew something substantial" check.
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    const data = imageData.data
-    let inkPixels = 0
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i]
-      const g = data[i + 1]
-      const b = data[i + 2]
-      const a = data[i + 3]
-      // Detect the stroke color #7c3aed (purple) - reasonably dark ink
-      if (a > 200 && b > 190 && r > 60 && g < 140) {
-        inkPixels++
+    // Main validation: check how much of the user's dark ink overlaps the letter area.
+    // We create a "tolerance mask" by drawing the letter multiple times with small offsets.
+    // This creates a thick band around the letter shape where drawing is "good".
+    const maskCanvas = document.createElement('canvas')
+    maskCanvas.width = size
+    maskCanvas.height = size
+    const maskCtx = maskCanvas.getContext('2d', { alpha: true })
+    if (!maskCtx) return false
+
+    maskCtx.fillStyle = 'black'
+    maskCtx.font = `bold ${size * 0.72}px system-ui, sans-serif`
+    maskCtx.textAlign = 'center'
+    maskCtx.textBaseline = 'middle'
+
+    // Draw the letter several times with offsets to create a forgiving target area
+    const tolerance = 12
+    for (let dx = -tolerance; dx <= tolerance; dx += 4) {
+      for (let dy = -tolerance; dy <= tolerance; dy += 4) {
+        maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
       }
     }
 
-    // Require decent ink coverage ( ~1.8% of the canvas for a 340px square).
-    // A proper attempt at tracing a letter should deposit way more than a tiny scribble.
-    const minInk = Math.floor(size * size * 0.018)
-    return inkPixels > minInk
+    const maskData = maskCtx.getImageData(0, 0, size, size).data
+    const userData = ctx.getImageData(0, 0, size, size).data
+
+    let userInk = 0
+    let overlapInk = 0
+
+    for (let i = 0; i < userData.length; i += 4) {
+      const r = userData[i]
+      const g = userData[i + 1]
+      const b = userData[i + 2]
+      const a = userData[i + 3]
+
+      // Count dark purple user strokes (the drawn ink)
+      if (a > 200 && b > 190 && r > 60 && g < 140) {
+        userInk++
+        // Check if this pixel is inside the letter mask (tolerance area)
+        const ma = maskData[i + 3]
+        if (ma > 50) {
+          overlapInk++
+        }
+      }
+    }
+
+    if (userInk < 800) return false // too little actual drawing
+
+    const overlapRatio = overlapInk / userInk
+    // At least 35% of what the child drew must be over/near the letter shape.
+    // This rejects random shapes (like a big V over E) even if they are large and centered.
+    return overlapRatio > 0.35
   }
 
   function startDrawing(e: React.PointerEvent) {
@@ -177,7 +207,7 @@ export function DesenheLetraGame() {
     const canvasEl = canvasRef.current
     const ctx = ctxRef.current
     const size = canvasEl?.width || 300
-    const isGood = isDrawingGood(drawnPoints, size, ctx, canvasEl)
+    const isGood = isDrawingGood(drawnPoints, size, ctx, canvasEl, currentLetter)
 
     setShowFeedback(true)
     setLastWasGood(isGood)
