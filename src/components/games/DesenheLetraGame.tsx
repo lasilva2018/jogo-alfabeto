@@ -86,7 +86,7 @@ export function DesenheLetraGame() {
     canvas: HTMLCanvasElement | null,
     letter: string
   ): boolean {
-    if (!ctx || !canvas || points.length < 15) return false
+    if (!ctx || !canvas || points.length < 12) return false
 
     // Quick bbox reject: must be reasonably large and centered
     const xs = points.map(p => p.x)
@@ -103,8 +103,9 @@ export function DesenheLetraGame() {
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    const minSpan = size * 0.35
-    const maxCenterOffset = size * 0.22
+    // Relaxed for 4-year-olds: allow more variation in size/position
+    const minSpan = size * 0.30
+    const maxCenterOffset = size * 0.25
     if (drawnWidth < minSpan || drawnHeight < minSpan || centerDist > maxCenterOffset) {
       return false
     }
@@ -123,10 +124,10 @@ export function DesenheLetraGame() {
     maskCtx.textAlign = 'center'
     maskCtx.textBaseline = 'middle'
 
-    // Draw the letter several times with offsets to create a forgiving target area
-    const tolerance = 12
-    for (let dx = -tolerance; dx <= tolerance; dx += 4) {
-      for (let dy = -tolerance; dy <= tolerance; dy += 4) {
+    // Larger tolerance band for kids' imperfect motor skills
+    const tolerance = 18
+    for (let dx = -tolerance; dx <= tolerance; dx += 3) {
+      for (let dy = -tolerance; dy <= tolerance; dy += 3) {
         maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
       }
     }
@@ -154,12 +155,12 @@ export function DesenheLetraGame() {
       }
     }
 
-    if (userInk < 800) return false // too little actual drawing
+    // More lenient minimum ink and overlap for small hands
+    if (userInk < 500) return false
 
     const overlapRatio = overlapInk / userInk
-    // At least 35% of what the child drew must be over/near the letter shape.
-    // This rejects random shapes (like a big V over E) even if they are large and centered.
-    return overlapRatio > 0.35
+    // Lowered to 25% — still requires drawing over the letter, but forgives imperfect tracing
+    return overlapRatio > 0.25
   }
 
   function startDrawing(e: React.PointerEvent) {
