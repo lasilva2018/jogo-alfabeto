@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
+import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { getRandomWord, getRandomDistractors } from '../../data/letters'
 import { useChildProfile } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
@@ -82,7 +83,7 @@ export function CompletePalavraGame() {
 
       setTimeout(() => {
         nextRound()
-      }, 1400)
+      }, SUCCESS_AUTO_ADVANCE_MS)
     } else {
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
       useChildProfile.getState().recordLetterPractice(game.correctLetter, false)

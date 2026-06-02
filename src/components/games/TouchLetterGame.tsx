@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
+import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { 
   getRandomExample, 
   getRandomDistractors, 
@@ -81,12 +82,17 @@ export function TouchLetterGame() {
       
       // Fala a letra + exemplo de forma carinhosa com o nome da criança
       const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
-      await getAudioManager().speakPhrase(speakText)
+      const audio = getAudioManager() as any
+      if (audio.speakAsAlfafa) {
+        await audio.speakAsAlfafa(speakText)
+      } else {
+        await getAudioManager().speakPhrase(speakText)
+      }
 
       // Celebra e avança
       setTimeout(() => {
         nextRound(game.currentLetter)
-      }, 1350)
+      }, SUCCESS_AUTO_ADVANCE_MS)
     } else {
       // Erro - feedback gentil
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
@@ -96,7 +102,12 @@ export function TouchLetterGame() {
 
       // Depois de um tempo, revela a resposta certa e libera
       setTimeout(async () => {
-        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        const audio2 = getAudioManager() as any
+        if (audio2.speakAsAlfafa) {
+          await audio2.speakAsAlfafa(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        } else {
+          await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        }
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -111,7 +122,12 @@ export function TouchLetterGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    getAudioManager().speakLetter(game.currentLetter, game.example.word)
+    const audio = getAudioManager() as any
+    if (audio.speakLetterAsAlfafa) {
+      audio.speakLetterAsAlfafa(game.currentLetter, game.example.word)
+    } else {
+      getAudioManager().speakLetter(game.currentLetter, game.example.word)
+    }
   }
 
   return (

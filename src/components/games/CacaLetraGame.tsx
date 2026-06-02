@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
+import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
 import { useChildProfile } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
@@ -93,16 +94,20 @@ export function CacaLetraGame() {
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
         const speakText = `Isso, ${childName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
-        await getAudioManager().speakPhrase(speakText)
+        const audio = getAudioManager() as any
+        if (audio.speakAsAlfafa) {
+          await audio.speakAsAlfafa(speakText)
+        } else {
+          await getAudioManager().speakPhrase(speakText)
+        }
 
         setTimeout(() => {
           nextRound()
-        }, 1500)
+        }, SUCCESS_AUTO_ADVANCE_MS)
       }
     } else {
-      // Wrong tap - gentle feedback
+      // Wrong tap - gentle feedback (não registramos erro no mastery para não poluir letras distratoras)
       setScore(s => ({ ...s, mistakes: s.mistakes + 1 }))
-      useChildProfile.getState().recordLetterPractice(tappedLetter, false)
       setGame(prev => ({ ...prev, lastResult: 'wrong' }))
 
       await getAudioManager().playMistake()
@@ -117,7 +122,12 @@ export function CacaLetraGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     const speakText = `Encontre todas as letras ${game.targetLetter}, ${childName}!`
-    getAudioManager().speakPhrase(speakText)
+    const audio2 = getAudioManager() as any
+    if (audio2.speakAsAlfafa) {
+      audio2.speakAsAlfafa(speakText)
+    } else {
+      getAudioManager().speakPhrase(speakText)
+    }
   }
 
   const foundCount = game.found.size

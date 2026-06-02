@@ -16,6 +16,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Abacaxi', emoji: '🍍' },
     { word: 'Árvore', emoji: '🌳' },
     { word: 'Amigo', emoji: '👦' },
+    { word: 'Abóbora', emoji: '🎃' },
+    { word: 'Açúcar', emoji: '🧂' },
   ],
   E: [
     { word: 'Elefante', emoji: '🐘' },
@@ -23,6 +25,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Escova', emoji: '🪥' },
     { word: 'Espelho', emoji: '🪞' },
     { word: 'Escada', emoji: '🪜' },
+    { word: 'Escola', emoji: '🏫' },
+    { word: 'Esquilo', emoji: '🐿️' },
   ],
   I: [
     { word: 'Ioiô', emoji: '🪀' },
@@ -51,6 +55,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Banana', emoji: '🍌' },
     { word: 'Borboleta', emoji: '🦋' },
     { word: 'Boneca', emoji: '🪆' },
+    { word: 'Bicicleta', emoji: '🚲' },
+    { word: 'Balde', emoji: '🪣' },
   ],
   P: [
     { word: 'Pato', emoji: '🦆' },
@@ -58,6 +64,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Pipoca', emoji: '🍿' },
     { word: 'Pão', emoji: '🍞' },
     { word: 'Papai', emoji: '👨' },
+    { word: 'Pular', emoji: '🦘' },
+    { word: 'Pincel', emoji: '🖌️' },
   ],
   M: [
     { word: 'Macaco', emoji: '🐵' },
@@ -65,6 +73,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Morango', emoji: '🍓' },
     { word: 'Melancia', emoji: '🍉' },
     { word: 'Mão', emoji: '✋' },
+    { word: 'Mala', emoji: '🧳' },
+    { word: 'Marmita', emoji: '🍱' },
   ],
   T: [
     { word: 'Tigre', emoji: '🐯' },
@@ -72,6 +82,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Trem', emoji: '🚂' },
     { word: 'Torta', emoji: '🥧' },
     { word: 'Telefone', emoji: '📱' },
+    { word: 'Tênis', emoji: '👟' },
+    { word: 'Tambor', emoji: '🥁' },
   ],
   D: [
     { word: 'Dado', emoji: '🎲' },
@@ -105,6 +117,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Casa', emoji: '🏠' },
     { word: 'Cavalo', emoji: '🐴' },
     { word: 'Cama', emoji: '🛏️' },
+    { word: 'Coração', emoji: '❤️' },
+    { word: 'Cadeira', emoji: '🪑' },
   ],
   L: [
     { word: 'Leão', emoji: '🦁' },
@@ -112,6 +126,8 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Livro', emoji: '📖' },
     { word: 'Lápis', emoji: '✏️' },
     { word: 'Leite', emoji: '🥛' },
+    { word: 'Laranja', emoji: '🍊' },
+    { word: 'Lobo', emoji: '🐺' },
   ],
   S: [
     { word: 'Sol', emoji: '☀️' },
@@ -119,6 +135,61 @@ export const WORD_BANK: Record<Letter, WordExample[]> = {
     { word: 'Sorvete', emoji: '🍦' },
     { word: 'Suco', emoji: '🧃' },
     { word: 'Sapato', emoji: '👟' },
+    { word: 'Salgadinho', emoji: '🍿' },
+    { word: 'Sino', emoji: '🔔' },
+  ],
+
+  // Fase 3 - mais consoantes (expandidas para dar mais variedade nos jogos de caça, memória, escuta e montagem)
+  N: [
+    { word: 'Nuvem', emoji: '☁️' },
+    { word: 'Ninho', emoji: '🪺' },
+    { word: 'Navio', emoji: '🚢' },
+    { word: 'Nenê', emoji: '👶' },
+    { word: 'Noite', emoji: '🌙' },
+  ],
+  R: [
+    { word: 'Rato', emoji: '🐭' },
+    { word: 'Rosa', emoji: '🌹' },
+    { word: 'Rã', emoji: '🐸' },
+    { word: 'Relógio', emoji: '🕰️' },
+    { word: 'Rolo', emoji: '🧻' },
+  ],
+  J: [
+    { word: 'Jacaré', emoji: '🐊' },
+    { word: 'Janela', emoji: '🪟' },
+    { word: 'Jardim', emoji: '🌷' },
+    { word: 'João', emoji: '👦' },
+    { word: 'Jogo', emoji: '🎮' },
+  ],
+  Z: [
+    { word: 'Zebra', emoji: '🦓' },
+    { word: 'Zoológico', emoji: '🦒' },
+    { word: 'Zangão', emoji: '🐝' },
+    { word: 'Zíper', emoji: '🔒' },
+    { word: 'Zum-zum', emoji: '🐝' },
+  ],
+  X: [
+    { word: 'Xícara', emoji: '☕' },
+    { word: 'Xadrez', emoji: '♟️' },
+    { word: 'Xuxu', emoji: '🥒' },
+    { word: 'Xale', emoji: '🧣' },
+    { word: 'Xuxa', emoji: '👩‍🦰' },
+  ],
+  Q: [
+    { word: 'Queijo', emoji: '🧀' },
+    { word: 'Quarto', emoji: '🛏️' },
+    { word: 'Quadro', emoji: '🖼️' },
+    { word: 'Quinta', emoji: '🏡' },
+    { word: 'Queimada', emoji: '🔥' },
+    { word: 'Quindim', emoji: '🍮' },
+  ],
+  H: [
+    { word: 'Hipopótamo', emoji: '🦛' },
+    { word: 'Helicóptero', emoji: '🚁' },
+    { word: 'Hambúrguer', emoji: '🍔' },
+    { word: 'Havaianas', emoji: '👡' },
+    { word: 'Hiena', emoji: '🦁' },
+    { word: 'Horta', emoji: '🥬' },
   ],
 }
 
@@ -161,5 +232,50 @@ export function getRandomWord(): { letter: Letter; example: WordExample } {
   return {
     letter: randomLetter,
     example: randomExample,
+  }
+}
+
+export interface OddOneOutRound {
+  options: Array<{ letter: Letter; example: WordExample }>
+  oddOneOutIndex: number
+  mainLetter: Letter
+}
+
+// Gera uma rodada de "Qual Não Pertence?"
+// 2 palavras da mesma letra + 1 intruso de letra diferente
+export function getOddOneOutRound(): OddOneOutRound {
+  const letters = AVAILABLE_LETTERS.filter(l => WORD_BANK[l] && WORD_BANK[l].length >= 2)
+  
+  // Escolhe a letra principal (a que terá 2 exemplos)
+  const mainLetter = letters[Math.floor(Math.random() * letters.length)]
+  const mainExamples = WORD_BANK[mainLetter]
+  
+  // Pega 2 exemplos diferentes da letra principal
+  const shuffledMain = [...mainExamples].sort(() => Math.random() - 0.5)
+  const example1 = shuffledMain[0]
+  const example2 = shuffledMain[1]
+  
+  // Escolhe letra intrusa diferente
+  const intruderLetters = letters.filter(l => l !== mainLetter)
+  const intruderLetter = intruderLetters[Math.floor(Math.random() * intruderLetters.length)]
+  const intruderExamples = WORD_BANK[intruderLetter]
+  const intruderExample = intruderExamples[Math.floor(Math.random() * intruderExamples.length)]
+  
+  // Monta as 3 opções e embaralha
+  const rawOptions = [
+    { letter: mainLetter, example: example1 },
+    { letter: mainLetter, example: example2 },
+    { letter: intruderLetter, example: intruderExample },
+  ]
+  
+  // Embaralha mantendo o índice do intruso
+  const indices = [0, 1, 2].sort(() => Math.random() - 0.5)
+  const options = indices.map(i => rawOptions[i])
+  const oddOneOutIndex = indices.indexOf(2) // onde foi parar o intruso (sempre o de índice 2 no raw)
+  
+  return {
+    options,
+    oddOneOutIndex,
+    mainLetter,
   }
 }
