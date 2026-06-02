@@ -21,6 +21,10 @@ type VoiceType = 'default' | 'alfafa';
 export class ElevenLabsProvider implements AudioProvider {
   private audio: HTMLAudioElement | null = null;
 
+  // Cache simples em memória para evitar re-gerar o mesmo áudio várias vezes
+  // (economiza cota do ElevenLabs e deixa a voz mais consistente)
+  private audioCache = new Map<string, string>(); // key -> objectURL
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(_options: ElevenLabsOptions = {}) {
     // Options can be used later for voice configuration
@@ -36,8 +40,25 @@ export class ElevenLabsProvider implements AudioProvider {
   async speak(text: string, opts?: { rate?: number; pitch?: number; voice?: VoiceType }): Promise<void> {
     const audio = this.getAudioElement();
     const voiceType = opts?.voice || 'default';
+    const cacheKey = `${voiceType}:${text}`;
 
     console.log('%c[ElevenLabs] Tentando falar via ElevenLabs...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
+
+    // Tenta cache primeiro (evita gastar cota do ElevenLabs em repetições)
+    if (this.audioCache.has(cacheKey)) {
+      const cachedUrl = this.audioCache.get(cacheKey)!;
+      console.log('%c[ElevenLabs] Usando áudio em cache (sem nova chamada)', 'color:#22c55e');
+      return new Promise((resolve) => {
+        audio.src = cachedUrl;
+        audio.onended = () => resolve();
+        audio.onerror = () => {
+          // se o cache estiver ruim, remove e cai no fallback
+          this.audioCache.delete(cacheKey);
+          this.fallbackToBrowserSpeech(text).then(resolve);
+        };
+        audio.play().catch(() => this.fallbackToBrowserSpeech(text).then(resolve));
+      });
+    }
 
     try {
       const response = await fetch('/api/tts', {
@@ -61,18 +82,24 @@ export class ElevenLabsProvider implements AudioProvider {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
 
+      // Guarda no cache para próximas vezes (mesmo texto + voz)
+      this.audioCache.set(cacheKey, url);
+
       return new Promise((resolve) => {
         audio.src = url;
         audio.onended = () => {
-          URL.revokeObjectURL(url);
+          // Não revogamos aqui porque está em cache — será revogado quando o cache for limpo ou no cancel
           resolve();
         };
         audio.onerror = () => {
+          this.audioCache.delete(cacheKey);
           URL.revokeObjectURL(url);
           console.warn('Audio playback error, falling back');
           this.fallbackToBrowserSpeech(text).then(resolve);
         };
         audio.play().catch((err) => {
+          this.audioCache.delete(cacheKey);
+          URL.revokeObjectURL(url);
           console.warn('Audio play failed', err);
           this.fallbackToBrowserSpeech(text).then(resolve);
         });
@@ -178,5 +205,14 @@ export class ElevenLabsProvider implements AudioProvider {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    // Limpa cache de áudio em caso de cancel (libera memória)
+    this.clearAudioCache();
+  }
+
+  private clearAudioCache() {
+    this.audioCache.forEach((url) => {
+      try { URL.revokeObjectURL(url); } catch {}
+    });
+    this.audioCache.clear();
   }
 }
