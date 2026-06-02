@@ -77,24 +77,21 @@ export function QualNaoPertenceGame() {
       await getAudioManager().playMistake()
 
       // Feedback corretivo com voz do Alfafa
-      setTimeout(async () => {
-        const correctWord = oddOption.example.word
-        const correctLetter = oddOption.letter
-        
-        const speakText = `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${childName}!`
-        
-        const audio = getAudioManager() as any
-        if (audio.speakAsAlfafa) {
-          audio.speakAsAlfafa(speakText)
-        } else {
-          getAudioManager().speakPhrase(speakText)
-        }
+      // Mantemos a tela com o erro visível (carta correta destacada) enquanto a voz explica
+      const correctWord = oddOption.example.word
+      const correctLetter = oddOption.letter
+      
+      const speakText = `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${childName}!`
+      
+      const audio = getAudioManager() as any
+      if (audio.speakAsAlfafa) {
+        await audio.speakAsAlfafa(speakText)
+      } else {
+        await getAudioManager().speakPhrase(speakText)
+      }
 
-        // Mostra a resposta correta e avança
-        setTimeout(() => {
-          nextRound()
-        }, SUCCESS_AUTO_ADVANCE_MS)
-      }, 700)
+      // Só avança depois que a explicação terminar de ser falada
+      nextRound()
     }
   }
 
