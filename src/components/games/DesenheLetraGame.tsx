@@ -211,10 +211,11 @@ export function DesenheLetraGame() {
 
     const overlapRatio = overlapInk / Math.max(userInk, 1)
 
-    // For very young kids (3 or under), be extremely forgiving:
-    // as long as they made a visible mark that is somewhat large and in the general center area with some ink, count it.
+    // For very young kids (3 or under): the EASIEST possible.
+    // Accept basically ANY visible effort that is not a tiny dot in the corner.
+    // 3yo drawings are expected to be very rough ("muito mal feitinha").
     if (childAge <= 3) {
-      if (drawnWidth > size * 0.18 && drawnHeight > size * 0.18 && centerDist < size * 0.40 && userInk > 80) {
+      if (drawnWidth > size * 0.08 && drawnHeight > size * 0.08 && centerDist < size * 0.50 && userInk > 20) {
         return true;
       }
     }
