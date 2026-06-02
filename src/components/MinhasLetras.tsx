@@ -1,4 +1,4 @@
-import { useChildProfile } from '../stores/useChildProfile'
+import { useChildProfile, useCurrentProfile } from '../stores/useChildProfile'
 import { Alfafa } from './mascot/Alfafa'
 
 interface LetterCardProps {
@@ -57,7 +57,7 @@ function LetterCard({ letter, correct, attempts }: LetterCardProps) {
 }
 
 export function MinhasLetras({ onBack }: { onBack: () => void }) {
-  const { profile } = useChildProfile()
+  const profile = useCurrentProfile()
   const mastery = profile?.letterMastery || {}
   const name = profile?.name || 'amiguinho'
 

@@ -1,10 +1,10 @@
-import { useChildProfile } from '../stores/useChildProfile'
+import { useCurrentProfile } from '../stores/useChildProfile'
 import { motion } from 'framer-motion'
 import { Alfafa } from './mascot/Alfafa'
 import { getAudioManager } from '../lib/audio/AudioManager'
 
 export function RewardsScreen({ onBack }: { onBack: () => void }) {
-  const { profile } = useChildProfile()
+  const profile = useCurrentProfile()
   const stars = profile?.stars || 0
   const name = profile?.name || 'amiguinho'
 
