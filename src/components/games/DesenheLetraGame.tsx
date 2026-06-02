@@ -90,15 +90,15 @@ export function DesenheLetraGame() {
   ): boolean {
     if (!ctx || !canvas) return false;
 
-    // For 3 years old and under: THE EASIEST POSSIBLE.
+    // For 4 years old and under: THE EASIEST POSSIBLE.
     // As long as they clicked "Terminei!" after having drawn something (hasDrawn is checked outside),
     // accept it immediately. No shape, size, center or overlap checks at all.
-    // 3yo drawings are expected to be very simple and imperfect. Goal is encouragement.
-    if (childAge <= 3) return true;
+    // 3-4yo drawings are expected to be very simple and imperfect. Goal is encouragement.
+    if (childAge <= 4) return true;
 
     if (points.length < 8) return false;
 
-    // Quick bbox reject
+    // Quick bbox reject (only for age >4)
     const xs = points.map(p => p.x)
     const ys = points.map(p => p.y)
     const minX = Math.min(...xs)
@@ -113,7 +113,7 @@ export function DesenheLetraGame() {
     const canvasCy = size / 2
     const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
 
-    // Compute dynamic thresholds based on age (younger = much more lenient)
+    // Compute dynamic thresholds based on age (younger = much more lenient) - only reached for age >4
     let minSpan = 0.22
     let maxCenterOffset = 0.30
     let tolerance = 28
@@ -124,27 +124,7 @@ export function DesenheLetraGame() {
     let safetyInk = 450
     let safetyOverlap = 0.08
 
-    if (childAge <= 3) {
-      minSpan = 0.12
-      maxCenterOffset = 0.42
-      tolerance = 40
-      minInk = 120
-      mainOverlap = 0.05
-      safetySpan = 0.18
-      safetyCenter = 0.38
-      safetyInk = 180
-      safetyOverlap = 0.03
-    } else if (childAge === 4) {
-      minSpan = 0.18
-      maxCenterOffset = 0.35
-      tolerance = 32
-      minInk = 220
-      mainOverlap = 0.10
-      safetySpan = 0.25
-      safetyCenter = 0.30
-      safetyInk = 320
-      safetyOverlap = 0.05
-    } else if (childAge === 5) {
+    if (childAge === 5) {
       minSpan = 0.24
       maxCenterOffset = 0.28
       tolerance = 26
@@ -167,8 +147,7 @@ export function DesenheLetraGame() {
       safetyOverlap = 0.14
     }
 
-    // Build tolerance mask and calculate ink EARLY so we can short-circuit for young kids
-    // before any bbox that might reject small drawings from 3yo
+    // Build tolerance mask and calculate ink (only for age >4)
     const maskCanvas = document.createElement('canvas')
     maskCanvas.width = size
     maskCanvas.height = size
@@ -215,14 +194,6 @@ export function DesenheLetraGame() {
     }
 
     const overlapRatio = overlapInk / Math.max(userInk, 1)
-
-    // For 3 years old and under: THE EASIEST POSSIBLE.
-    // Accept almost ANY drawing that puts some purple on the canvas.
-    // For 3yo, letters will be very rough and simple. The goal is to encourage trying and build confidence.
-    // We check this BEFORE any strict bbox, so even small or off-center drawings from 3yo are accepted.
-    if (childAge <= 3) {
-      if (userInk > 5) return true;  // if they drew anything visible at all, it's a win
-    }
 
     if (drawnWidth < size * minSpan || drawnHeight < size * minSpan || centerDist > size * maxCenterOffset) {
       return false
