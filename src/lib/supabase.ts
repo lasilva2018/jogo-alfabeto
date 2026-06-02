@@ -17,7 +17,7 @@
  *  - Nunca expor dados de uma criança para outro responsável
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type User, type Session } from '@supabase/supabase-js'
 
 const env = (import.meta as any).env || {}
 const supabaseUrl = env.VITE_SUPABASE_URL
@@ -28,13 +28,16 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
       },
     })
   : null
 
 export const isSupabaseEnabled = !!supabase
 
-// Tipos futuros (usar quando implementar as tabelas)
+// ============================================
+// Tipos
+// ============================================
 export interface CloudChild {
   id: string
   parent_id: string
@@ -42,36 +45,177 @@ export interface CloudChild {
   avatar: string
   stars: number
   letter_mastery: Record<string, { correct: number; attempts: number }>
+  created_at: string
   updated_at: string
 }
 
-// Helpers de stub (serão implementados de verdade na próxima iteração)
-export async function syncProfileToCloud(localProfile: any): Promise<void> {
-  if (!supabase) {
-    console.log('[Supabase] Sync ignorado — cliente não configurado')
-    return
-  }
-  // TODO: upsert na tabela children com RLS
-  console.log('[Supabase] (stub) Sincronizaria perfil:', localProfile.name)
+export interface SupabaseAuthState {
+  user: User | null
+  session: Session | null
+  isLoading: boolean
 }
 
-export async function loadProfilesFromCloud(): Promise<any[]> {
-  if (!supabase) return []
-  // TODO: select * from children where parent_id = auth.uid()
-  console.log('[Supabase] (stub) Carregaria perfis da nuvem')
-  return []
-}
-
-export async function signInParent(email: string) {
+// ============================================
+// Auth (Magic Link - melhor UX para pais)
+// ============================================
+export async function signInParentWithMagicLink(email: string): Promise<{ success: boolean; message: string }> {
   if (!supabase) {
-    alert('Sincronização na nuvem ainda não está disponível nesta versão.')
-    return
+    return { success: false, message: 'Supabase não configurado (verifique .env.local)' }
   }
-  // magic link
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim().toLowerCase(),
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: window.location.origin,
+    },
+  })
   if (error) {
-    alert('Erro ao enviar link: ' + error.message)
-  } else {
-    alert('Link mágico enviado! Confira seu e-mail.')
+    console.error('[Supabase] Magic link error:', error)
+    return { success: false, message: error.message }
   }
+  return { success: true, message: 'Link enviado! Verifique seu e-mail (inclusive spam).' }
+}
+
+export async function signOutParent(): Promise<void> {
+  if (supabase) await supabase.auth.signOut()
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  if (!supabase) return null
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+}
+
+export function onAuthStateChange(callback: (user: User | null) => void) {
+  if (!supabase) return () => {}
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user ?? null)
+  })
+  return () => subscription.unsubscribe()
+}
+
+// ============================================
+// Sync de Children (perfis)
+// ============================================
+
+export async function loadChildrenFromCloud(): Promise<CloudChild[]> {
+  if (!supabase) return []
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('children')
+    .select('*')
+    .eq('parent_id', user.id)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('[Supabase] loadChildren error', error)
+    return []
+  }
+  return (data as CloudChild[]) || []
+}
+
+export async function upsertChildToCloud(profile: {
+  id?: string
+  name: string
+  avatar: string
+  stars: number
+  letterMastery: Record<string, { correct: number; attempts: number }>
+}): Promise<{ success: boolean; cloudId?: string }> {
+  if (!supabase) return { success: false }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  const payload: any = {
+    parent_id: user.id,
+    name: profile.name,
+    avatar: profile.avatar,
+    stars: profile.stars,
+    letter_mastery: profile.letterMastery,
+  }
+  if (profile.id) payload.id = profile.id
+
+  const { data, error } = await supabase
+    .from('children')
+    .upsert(payload, { onConflict: 'id' })
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('[Supabase] upsert error', error)
+    return { success: false }
+  }
+  return { success: true, cloudId: data?.id }
+}
+
+export async function deleteChildFromCloud(childId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase.from('children').delete().eq('id', childId)
+  if (error) {
+    console.error('[Supabase] delete error', error)
+    return false
+  }
+  return true
+}
+
+export async function pushAllLocalToCloud(localProfiles: any[]): Promise<number> {
+  if (!supabase || localProfiles.length === 0) return 0
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 0
+
+  const payloads = localProfiles.map((p: any) => ({
+    id: p.id,
+    parent_id: user.id,
+    name: p.name,
+    avatar: p.avatar,
+    stars: p.stars || 0,
+    letter_mastery: p.letterMastery || {},
+  }))
+
+  const { error } = await supabase.from('children').upsert(payloads, { onConflict: 'id' })
+  if (error) {
+    console.error('[Supabase] batch push error', error)
+    return 0
+  }
+  return payloads.length
+}
+
+/**
+ * Lógica de merge no login:
+ * - Se nuvem tem dados → usa nuvem (multi-dispositivo)
+ * - Se nuvem vazia e temos local → sobe tudo automaticamente
+ */
+export async function syncOnLogin(localProfiles: any[]): Promise<{ profiles: any[]; usedCloud: boolean }> {
+  const cloud = await loadChildrenFromCloud()
+
+  if (cloud.length > 0) {
+    const mapped = cloud.map((c) => ({
+      id: c.id,
+      name: c.name,
+      avatar: c.avatar,
+      stars: c.stars,
+      letterMastery: c.letter_mastery || {},
+      createdAt: c.created_at,
+    }))
+    return { profiles: mapped, usedCloud: true }
+  }
+
+  if (localProfiles.length > 0) {
+    await pushAllLocalToCloud(localProfiles)
+    const fresh = await loadChildrenFromCloud()
+    if (fresh.length > 0) {
+      const mapped = fresh.map((c) => ({
+        id: c.id,
+        name: c.name,
+        avatar: c.avatar,
+        stars: c.stars,
+        letterMastery: c.letter_mastery || {},
+        createdAt: c.created_at,
+      }))
+      return { profiles: mapped, usedCloud: false }
+    }
+  }
+  return { profiles: [], usedCloud: false }
 }

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase, isSupabaseEnabled, signInParentWithMagicLink, signOutParent, loadChildrenFromCloud, upsertChildToCloud, deleteChildFromCloud, pushAllLocalToCloud, syncOnLogin, onAuthStateChange } from '../lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 export interface ChildProfile {
   id: string
@@ -24,7 +26,12 @@ interface ChildProfileState {
   parentSettings: ParentSettings
   hasCompletedOnboarding: boolean
 
-  // Computed (use via selector or direct access after update)
+  // Supabase auth + sync
+  supabaseUser: User | null
+  isSyncing: boolean
+  isAuthenticated: boolean
+
+  // Computed
   profile: ChildProfile | null
 
   createProfile: (name: string, avatar: string) => void
@@ -32,7 +39,7 @@ interface ChildProfileState {
   updateProfile: (updates: Partial<ChildProfile>) => void
   deleteProfile: (id: string) => void
   clearAllData: () => void
-  clearProfile: () => void   // compatibilidade com código antigo dos jogos
+  clearProfile: () => void
 
   completeOnboarding: () => void
   addStars: (amount: number) => void
@@ -40,6 +47,12 @@ interface ChildProfileState {
 
   setPremium: (isPremium: boolean, expiresAt?: string) => void
   acceptPrivacy: (allowNameCollection: boolean) => void
+
+  // Novas ações de auth/sync
+  signInWithEmail: (email: string) => Promise<{ success: boolean; message: string }>
+  signOut: () => Promise<void>
+  syncNow: () => Promise<void>
+  initializeSupabaseSync: () => void
 }
 
 export const useChildProfile = create<ChildProfileState>()(
@@ -54,7 +67,12 @@ export const useChildProfile = create<ChildProfileState>()(
       },
       hasCompletedOnboarding: false,
 
-      // Helper computed (not perfectly reactive in all cases, use selectors when possible)
+      // Supabase
+      supabaseUser: null,
+      isSyncing: false,
+      isAuthenticated: false,
+
+      // Helper computed
       get profile() {
         const { profiles, currentProfileId } = get()
         return profiles.find(p => p.id === currentProfileId) || null
@@ -75,6 +93,11 @@ export const useChildProfile = create<ChildProfileState>()(
           currentProfileId: newProfile.id,
           hasCompletedOnboarding: true,
         }))
+
+        // Sync para nuvem (fire-and-forget)
+        if (get().isAuthenticated) {
+          upsertChildToCloud(newProfile).catch(console.error)
+        }
       },
 
       switchProfile: (id: string) => {
@@ -86,19 +109,25 @@ export const useChildProfile = create<ChildProfileState>()(
       updateProfile: (updates) => {
         set((state) => {
           if (!state.currentProfileId) return state
-          return {
-            profiles: state.profiles.map(p =>
-              p.id === state.currentProfileId ? { ...p, ...updates } : p
-            ),
-          }
+          const updated = state.profiles.map(p =>
+            p.id === state.currentProfileId ? { ...p, ...updates } : p
+          )
+          return { profiles: updated }
         })
+
+        const current = get().profile
+        if (get().isAuthenticated && current) {
+          upsertChildToCloud(current).catch(console.error)
+        }
       },
 
       deleteProfile: (id: string) => {
+        const wasCurrent = get().currentProfileId === id
+
         set((state) => {
           const newProfiles = state.profiles.filter(p => p.id !== id)
-          const newCurrent = state.currentProfileId === id 
-            ? (newProfiles[0]?.id ?? null) 
+          const newCurrent = wasCurrent
+            ? (newProfiles[0]?.id ?? null)
             : state.currentProfileId
 
           return {
@@ -107,6 +136,10 @@ export const useChildProfile = create<ChildProfileState>()(
             hasCompletedOnboarding: newProfiles.length > 0,
           }
         })
+
+        if (get().isAuthenticated) {
+          deleteChildFromCloud(id).catch(console.error)
+        }
       },
 
       clearAllData: () => {
@@ -119,19 +152,24 @@ export const useChildProfile = create<ChildProfileState>()(
             privacyAccepted: false,
             allowNameCollection: true,
           },
+          supabaseUser: null,
+          isAuthenticated: false,
         })
       },
 
       clearProfile: () => {
-        // Compatibilidade com os jogos (botão de engrenagem)
         const state = get()
         if (state.currentProfileId) {
-          const newProfiles = state.profiles.filter(p => p.id !== state.currentProfileId)
+          const idToDelete = state.currentProfileId
+          const newProfiles = state.profiles.filter(p => p.id !== idToDelete)
           set({
             profiles: newProfiles,
             currentProfileId: newProfiles[0]?.id ?? null,
             hasCompletedOnboarding: newProfiles.length > 0,
           })
+          if (state.isAuthenticated) {
+            deleteChildFromCloud(idToDelete).catch(console.error)
+          }
         }
       },
 
@@ -150,6 +188,11 @@ export const useChildProfile = create<ChildProfileState>()(
             ),
           }
         })
+
+        const p = get().profile
+        if (get().isAuthenticated && p) {
+          upsertChildToCloud(p).catch(console.error)
+        }
       },
 
       recordLetterPractice: (letter: string, isCorrect: boolean) => {
@@ -172,6 +215,11 @@ export const useChildProfile = create<ChildProfileState>()(
             }),
           }
         })
+
+        const p = get().profile
+        if (get().isAuthenticated && p) {
+          upsertChildToCloud(p).catch(console.error)
+        }
       },
 
       setPremium: (isPremium, expiresAt) => {
@@ -189,6 +237,96 @@ export const useChildProfile = create<ChildProfileState>()(
             allowNameCollection,
           },
         }))
+      },
+
+      // ==================== AUTH + SYNC ====================
+
+      signInWithEmail: async (email: string) => {
+        const result = await signInParentWithMagicLink(email)
+        return result
+      },
+
+      signOut: async () => {
+        await signOutParent()
+        set({ supabaseUser: null, isAuthenticated: false })
+      },
+
+      syncNow: async () => {
+        const state = get()
+        if (!state.isAuthenticated || !isSupabaseEnabled) return
+
+        set({ isSyncing: true })
+        try {
+          // Push local atual
+          await pushAllLocalToCloud(state.profiles)
+          // Puxa o que está na nuvem (pode ter vindo de outro device)
+          const cloudProfiles = await loadChildrenFromCloud()
+          if (cloudProfiles.length > 0) {
+            const mapped = cloudProfiles.map((c) => ({
+              id: c.id,
+              name: c.name,
+              avatar: c.avatar,
+              stars: c.stars,
+              letterMastery: c.letter_mastery || {},
+              createdAt: c.created_at,
+            }))
+            // Mantém o current se possível
+            const stillExists = mapped.some((p) => p.id === state.currentProfileId)
+            set({
+              profiles: mapped,
+              currentProfileId: stillExists ? state.currentProfileId : (mapped[0]?.id ?? null),
+            })
+          }
+        } finally {
+          set({ isSyncing: false })
+        }
+      },
+
+      initializeSupabaseSync: () => {
+        if (!isSupabaseEnabled || !supabase) return
+
+        // 1. Listener de auth (roda no bootstrap)
+        onAuthStateChange(async (user) => {
+          const wasAuthenticated = get().isAuthenticated
+          set({
+            supabaseUser: user,
+            isAuthenticated: !!user,
+          })
+
+          if (user && !wasAuthenticated) {
+            // Novo login → faz merge inteligente
+            set({ isSyncing: true })
+            try {
+              const local = get().profiles
+              const { profiles: merged, usedCloud } = await syncOnLogin(local)
+              if (merged.length > 0) {
+                set({
+                  profiles: merged,
+                  currentProfileId: merged[0]?.id ?? null,
+                  hasCompletedOnboarding: true,
+                })
+              }
+              console.log('[Supabase] Sync no login concluído. Usou nuvem?', usedCloud)
+            } finally {
+              set({ isSyncing: false })
+            }
+          }
+
+          if (!user) {
+            set({ isAuthenticated: false })
+          }
+        })
+
+        // 2. Tenta restaurar sessão atual (útil em reload)
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            set({ supabaseUser: session.user, isAuthenticated: true })
+            // O onAuthStateChange acima também vai disparar, mas fazemos um sync inicial
+            setTimeout(() => {
+              get().syncNow().catch(console.error)
+            }, 800)
+          }
+        })
       },
     }),
     {
@@ -208,4 +346,17 @@ export const useCurrentProfile = () => {
   return useChildProfile((state) => 
     state.profiles.find(p => p.id === state.currentProfileId) || null
   )
+}
+
+// Inicializa o listener de Supabase assim que o store é importado
+// (chamado automaticamente no bootstrap da app via main.tsx ou App)
+if (typeof window !== 'undefined') {
+  // Delay pequeno para garantir que o persist já carregou
+  setTimeout(() => {
+    try {
+      useChildProfile.getState().initializeSupabaseSync()
+    } catch (e) {
+      console.warn('[Supabase] Falha ao inicializar sync', e)
+    }
+  }, 50)
 }

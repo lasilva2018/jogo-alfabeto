@@ -2,7 +2,7 @@ import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 import { PrivacyPolicy } from './PrivacyPolicy'
 import { TermsOfUse } from './TermsOfUse'
-import { isSupabaseEnabled, signInParent } from '../lib/supabase'
+import { isSupabaseEnabled } from '../lib/supabase'
 
 export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpenPremium?: () => void }) {
   const {
@@ -13,10 +13,19 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
     deleteProfile,
     clearAllData,
     acceptPrivacy,
+    // Supabase auth/sync
+    supabaseUser,
+    isSyncing,
+    isAuthenticated,
+    signInWithEmail,
+    signOut,
+    syncNow,
   } = useChildProfile()
 
   const [showPrivacy, setShowPrivacy] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
+  const [authMessage, setAuthMessage] = useState('')
 
   const handleDeleteCurrent = () => {
     if (!currentProfileId) return
@@ -122,31 +131,88 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
           </p>
         </div>
 
-        {/* Nuvem / Sync (preparação Supabase - Fase 2) */}
+        {/* Nuvem / Sync (Supabase real) */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-purple-100 mb-6">
-          <h2 className="font-semibold text-xl mb-4">Backup e Sincronização</h2>
-          
-          <div className="text-sm text-gray-600 mb-4">
-            Em breve: salve o progresso de todas as crianças na nuvem com segurança. 
-            Troque de celular sem perder nada e acesse relatórios de onde estiver.
-          </div>
+          <h2 className="font-semibold text-xl mb-4 flex items-center gap-2">
+            Backup e Sincronização
+            {isSyncing && <span className="text-xs text-purple-500">sincronizando...</span>}
+          </h2>
 
-          <button
-            onClick={() => {
-              if (isSupabaseEnabled) {
-                const email = prompt('Digite o e-mail do responsável para receber o link mágico:')
-                if (email) signInParent(email)
-              } else {
-                alert('A sincronização na nuvem será liberada na próxima atualização. Fique ligado!')
-              }
-            }}
-            className="w-full py-3 rounded-2xl border-2 border-purple-200 text-purple-700 font-medium active:bg-purple-50"
-          >
-            {isSupabaseEnabled ? 'Criar conta / Entrar (responsável)' : 'Em breve: Salvar progresso na nuvem →'}
-          </button>
+          {isAuthenticated && supabaseUser ? (
+            <div className="space-y-3">
+              <div className="text-sm bg-green-50 text-green-700 px-3 py-2 rounded-2xl">
+                ✓ Conectado como <span className="font-medium">{supabaseUser.email}</span>
+              </div>
 
-          <p className="text-[10px] text-gray-400 mt-2 text-center">
-            Seus dados continuam 100% locais até você conectar uma conta.
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    setAuthMessage('')
+                    await syncNow()
+                    setAuthMessage('Sincronizado com sucesso!')
+                    setTimeout(() => setAuthMessage(''), 2000)
+                  }}
+                  disabled={isSyncing}
+                  className="flex-1 py-3 rounded-2xl bg-purple-600 text-white font-medium active:bg-purple-700 disabled:opacity-60"
+                >
+                  {isSyncing ? 'Sincronizando...' : 'Sincronizar agora'}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (confirm('Desconectar esta conta? Seus dados locais permanecem.')) {
+                      await signOut()
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-2xl border-2 border-gray-300 text-gray-600 font-medium active:bg-gray-50"
+                >
+                  Sair
+                </button>
+              </div>
+
+              <p className="text-[10px] text-gray-500">
+                O progresso é sincronizado automaticamente após cada jogada quando conectado.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                Conecte uma conta de responsável com link mágico (sem senha). Assim você tem backup e pode usar em vários aparelhos.
+              </p>
+
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-purple-200 text-lg focus:border-purple-500 outline-none"
+              />
+
+              <button
+                onClick={async () => {
+                  if (!emailInput.trim()) return
+                  setAuthMessage('')
+                  const res = await signInWithEmail(emailInput)
+                  setAuthMessage(res.message)
+                  if (res.success) setEmailInput('')
+                }}
+                disabled={!emailInput.trim() || !isSupabaseEnabled}
+                className="w-full py-3 rounded-2xl bg-purple-600 text-white font-semibold active:bg-purple-700 disabled:bg-gray-300"
+              >
+                Enviar link mágico
+              </button>
+
+              {!isSupabaseEnabled && (
+                <p className="text-xs text-amber-600">Supabase ainda não configurado neste ambiente.</p>
+              )}
+
+              {authMessage && (
+                <p className="text-xs text-center text-purple-600">{authMessage}</p>
+              )}
+            </div>
+          )}
+
+          <p className="text-[10px] text-gray-400 mt-3 text-center">
+            Seus dados locais continuam funcionando offline. A nuvem é apenas backup + multi-dispositivo.
           </p>
         </div>
 
