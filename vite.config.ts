@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',  // força atualização mais agressiva após deploys (evita ficar preso em bundle antigo com voz robótica)
       includeAssets: ['/favicon-32.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png'],
       manifest: {
         name: 'Alfafa - O Alfabeto Mágico',
@@ -43,6 +43,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Força o SW a ativar imediatamente após novo deploy
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             // Cache de áudio gerado por SpeechSynthesis (não se aplica diretamente, mas preparamos)
