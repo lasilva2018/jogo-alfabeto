@@ -1,4 +1,5 @@
 import type { FeedbackType } from './AudioManager';
+import { useChildProfile } from '../../stores/useChildProfile';
 
 interface AudioProvider {
   speak(text: string, options?: { rate?: number; pitch?: number }): Promise<void>
@@ -38,11 +39,19 @@ export class ElevenLabsProvider implements AudioProvider {
   }
 
   async speak(text: string, opts?: { rate?: number; pitch?: number; voice?: VoiceType }): Promise<void> {
+    // Gate de custo: apenas usuários Premium consomem a cota da ElevenLabs.
+    // Usuários free usam sempre o fallback do navegador (SpeechSynthesis).
+    const { parentSettings } = useChildProfile.getState();
+    if (!parentSettings?.isPremium) {
+      console.log('%c[ElevenLabs] Usuário free — voz do navegador (sem custo ElevenLabs)', 'color:#f59e0b');
+      return this.fallbackToBrowserSpeech(text);
+    }
+
     const audio = this.getAudioElement();
     const voiceType = opts?.voice || 'default';
     const cacheKey = `${voiceType}:${text}`;
 
-    console.log('%c[ElevenLabs] Tentando falar via ElevenLabs...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
+    console.log('%c[ElevenLabs] Tentando falar via ElevenLabs (Premium)...', 'color:#22c55e', { text: text.substring(0, 80), voiceType });
 
     // Tenta cache primeiro (evita gastar cota do ElevenLabs em repetições)
     if (this.audioCache.has(cacheKey)) {
