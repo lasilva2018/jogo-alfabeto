@@ -2,6 +2,7 @@ import { useChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 import { PrivacyPolicy } from './PrivacyPolicy'
 import { TermsOfUse } from './TermsOfUse'
+import { isSupabaseEnabled, signInParent } from '../lib/supabase'
 
 export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpenPremium?: () => void }) {
   const {
@@ -118,6 +119,34 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
 
           <p className="text-xs text-gray-500 text-center">
             Pagamento único • Sem assinatura
+          </p>
+        </div>
+
+        {/* Nuvem / Sync (preparação Supabase - Fase 2) */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-purple-100 mb-6">
+          <h2 className="font-semibold text-xl mb-4">Backup e Sincronização</h2>
+          
+          <div className="text-sm text-gray-600 mb-4">
+            Em breve: salve o progresso de todas as crianças na nuvem com segurança. 
+            Troque de celular sem perder nada e acesse relatórios de onde estiver.
+          </div>
+
+          <button
+            onClick={() => {
+              if (isSupabaseEnabled) {
+                const email = prompt('Digite o e-mail do responsável para receber o link mágico:')
+                if (email) signInParent(email)
+              } else {
+                alert('A sincronização na nuvem será liberada na próxima atualização. Fique ligado!')
+              }
+            }}
+            className="w-full py-3 rounded-2xl border-2 border-purple-200 text-purple-700 font-medium active:bg-purple-50"
+          >
+            {isSupabaseEnabled ? 'Criar conta / Entrar (responsável)' : 'Em breve: Salvar progresso na nuvem →'}
+          </button>
+
+          <p className="text-[10px] text-gray-400 mt-2 text-center">
+            Seus dados continuam 100% locais até você conectar uma conta.
           </p>
         </div>
 
