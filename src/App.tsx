@@ -1,11 +1,16 @@
 import { useState } from 'react'
-import { useChildProfile } from './stores/useChildProfile'
+import { useChildProfile, useCurrentProfile } from './stores/useChildProfile'
 import { Onboarding } from './components/onboarding/Onboarding'
 import { Home } from './components/Home'
 import { PrivacyPolicy } from './components/PrivacyPolicy'
 
 function App() {
-  const { hasCompletedOnboarding, profile, parentSettings, acceptPrivacy, profiles } = useChildProfile()
+  // Usar seletores específicos para garantir re-render correto quando o perfil é criado
+  const hasCompletedOnboarding = useChildProfile((state) => state.hasCompletedOnboarding)
+  const profile = useCurrentProfile()
+  const parentSettings = useChildProfile((state) => state.parentSettings)
+  const profiles = useChildProfile((state) => state.profiles)
+  const acceptPrivacy = useChildProfile((state) => state.acceptPrivacy)
 
   // Gate de consentimento para usuários existentes que ainda não aceitaram a política (cenário de atualização)
   const [consentGateOpen, setConsentGateOpen] = useState(true)

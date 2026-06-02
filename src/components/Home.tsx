@@ -13,14 +13,15 @@ import { MinhasLetras } from './MinhasLetras'
 import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
 import { Alfafa } from './mascot/Alfafa'
-import { useChildProfile } from '../stores/useChildProfile'
+import { useChildProfile, useCurrentProfile } from '../stores/useChildProfile'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
 type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'settings' | 'premium'
 
 export function Home() {
-  const { profile, parentSettings } = useChildProfile()
+  const profile = useCurrentProfile()
+  const parentSettings = useChildProfile((state) => state.parentSettings)
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
   const childName = profile?.name || 'amiguinho'
