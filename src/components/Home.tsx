@@ -24,6 +24,7 @@ export function Home() {
   const parentSettings = useChildProfile((state) => state.parentSettings)
   const isAuthenticated = useChildProfile((state) => state.isAuthenticated)
   const createProfileAction = useChildProfile((state) => state.createProfile)
+  const acceptPrivacy = useChildProfile((state) => state.acceptPrivacy)
   const isSyncing = useChildProfile((state) => state.isSyncing)
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
@@ -43,6 +44,8 @@ export function Home() {
   const handleCreateFirstProfile = () => {
     const trimmed = firstName.trim()
     if (trimmed.length < 2) return
+    // Garante que a privacidade foi aceita (o responsável já viu a seção em Settings ao pedir o link)
+    acceptPrivacy(true)
     createProfileAction(trimmed, firstAvatar)
     setShowFirstProfileForm(false)
     setFirstName('')
