@@ -293,8 +293,14 @@ export const useChildProfile = create<ChildProfileState>()(
             isAuthenticated: !!user,
           })
 
+          // Uma vez que o responsável autenticou, consideramos o "onboarding do app" feito.
+          // Perfis de crianças são gerenciados separadamente (podem vir da nuvem).
+          if (user) {
+            set({ hasCompletedOnboarding: true })
+          }
+
           if (user && !wasAuthenticated) {
-            // Novo login → faz merge inteligente
+            // Novo login → faz merge inteligente (sobe local ou baixa da nuvem)
             set({ isSyncing: true })
             try {
               const local = get().profiles
@@ -303,9 +309,10 @@ export const useChildProfile = create<ChildProfileState>()(
                 set({
                   profiles: merged,
                   currentProfileId: merged[0]?.id ?? null,
-                  hasCompletedOnboarding: true,
                 })
               }
+              // Se merged.length === 0, mantemos hasCompleted true (por causa da auth)
+              // e o Home vai mostrar a opção de criar o primeiro perfil.
               console.log('[Supabase] Sync no login concluído. Usou nuvem?', usedCloud)
             } finally {
               set({ isSyncing: false })
@@ -320,7 +327,7 @@ export const useChildProfile = create<ChildProfileState>()(
         // 2. Tenta restaurar sessão atual (útil em reload)
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session?.user) {
-            set({ supabaseUser: session.user, isAuthenticated: true })
+            set({ supabaseUser: session.user, isAuthenticated: true, hasCompletedOnboarding: true })
             // O onAuthStateChange acima também vai disparar, mas fazemos um sync inicial
             setTimeout(() => {
               get().syncNow().catch(console.error)

@@ -22,11 +22,32 @@ type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete
 export function Home() {
   const profile = useCurrentProfile()
   const parentSettings = useChildProfile((state) => state.parentSettings)
+  const isAuthenticated = useChildProfile((state) => state.isAuthenticated)
+  const createProfileAction = useChildProfile((state) => state.createProfile)
+  const isSyncing = useChildProfile((state) => state.isSyncing)
+
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
   const childName = profile?.name || 'amiguinho'
   const stars = profile?.stars || 0
   const isPremium = parentSettings?.isPremium || false
+
+  // Form simples para criar o primeiro perfil de criança (usado quando o responsável já autenticou via Supabase
+  // mas ainda não tem nenhum perfil de criança cadastrado)
+  const [showFirstProfileForm, setShowFirstProfileForm] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [firstAvatar, setFirstAvatar] = useState('🐘')
+
+  const AVATAR_OPTIONS = ['🐘', '🦁', '🐻', '🐰', '🐼', '🦒', '🐢', '🦊']
+
+  const handleCreateFirstProfile = () => {
+    const trimmed = firstName.trim()
+    if (trimmed.length < 2) return
+    createProfileAction(trimmed, firstAvatar)
+    setShowFirstProfileForm(false)
+    setFirstName('')
+    // O createProfile já cuida de sincronizar com a nuvem se autenticado
+  }
 
   // Recomendação inteligente baseada no mastery real da criança
   const getWeakLetters = (prof: any) => {
@@ -292,6 +313,68 @@ export function Home() {
 
       <div className="flex-1 overflow-y-auto px-6 pt-2 pb-12 flex flex-col gap-5">
         
+        {/* Caso o responsável esteja autenticado mas ainda não tenha criado nenhum perfil de criança */}
+        {!profile && isAuthenticated && (
+          <div className="bg-white rounded-3xl p-6 shadow-lg border-2 border-purple-300">
+            <div className="text-center mb-4">
+              <div className="text-5xl mb-2">👶</div>
+              <h3 className="text-2xl font-bold text-purple-700">Vamos criar o primeiro perfil!</h3>
+              <p className="text-gray-600 mt-1 text-sm">Crie o perfil da sua criança para começar a brincar e salvar o progresso na nuvem.</p>
+            </div>
+
+            {!showFirstProfileForm ? (
+              <button
+                onClick={() => setShowFirstProfileForm(true)}
+                className="w-full py-4 bg-purple-600 text-white text-xl font-bold rounded-3xl active:bg-purple-700"
+                disabled={isSyncing}
+              >
+                Criar perfil da criança
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Nome ou apelido da criança"
+                  className="w-full text-2xl text-center py-3 px-4 rounded-2xl border-2 border-purple-200 focus:border-purple-500 outline-none"
+                  autoFocus
+                />
+
+                <div className="grid grid-cols-4 gap-3">
+                  {AVATAR_OPTIONS.map((av) => (
+                    <button
+                      key={av}
+                      onClick={() => setFirstAvatar(av)}
+                      className={`text-5xl aspect-square flex items-center justify-center rounded-2xl border-4 transition-all ${firstAvatar === av ? 'border-purple-500 bg-purple-100 scale-105' : 'border-gray-200 bg-white'}`}
+                    >
+                      {av}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowFirstProfileForm(false); setFirstName('') }}
+                    className="flex-1 py-3 rounded-2xl border-2 border-gray-300 text-gray-600 font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCreateFirstProfile}
+                    disabled={firstName.trim().length < 2}
+                    className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-2xl disabled:bg-gray-300 active:bg-purple-700"
+                  >
+                    Criar e começar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isSyncing && <p className="text-xs text-center text-purple-500 mt-2">Sincronizando com a nuvem...</p>}
+          </div>
+        )}
+
         {/* Game 1 - Toque a Letra (reconhecimento básico - vogais) */}
         <button
           onClick={() => setCurrentScreen('touch-letter')}
