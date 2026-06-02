@@ -117,35 +117,35 @@ export function DesenheLetraGame() {
     let safetyOverlap = 0.08
 
     if (childAge <= 3) {
-      minSpan = 0.15
-      maxCenterOffset = 0.38
-      tolerance = 35
-      minInk = 180
-      mainOverlap = 0.08
-      safetySpan = 0.22
-      safetyCenter = 0.32
-      safetyInk = 280
-      safetyOverlap = 0.05
+      minSpan = 0.12
+      maxCenterOffset = 0.42
+      tolerance = 40
+      minInk = 120
+      mainOverlap = 0.05
+      safetySpan = 0.18
+      safetyCenter = 0.38
+      safetyInk = 180
+      safetyOverlap = 0.03
     } else if (childAge === 4) {
-      minSpan = 0.20
-      maxCenterOffset = 0.32
-      tolerance = 30
-      minInk = 250
-      mainOverlap = 0.12
-      safetySpan = 0.28
-      safetyCenter = 0.27
-      safetyInk = 380
-      safetyOverlap = 0.07
+      minSpan = 0.18
+      maxCenterOffset = 0.35
+      tolerance = 32
+      minInk = 220
+      mainOverlap = 0.10
+      safetySpan = 0.25
+      safetyCenter = 0.30
+      safetyInk = 320
+      safetyOverlap = 0.05
     } else if (childAge === 5) {
-      minSpan = 0.25
-      maxCenterOffset = 0.26
-      tolerance = 24
-      minInk = 380
-      mainOverlap = 0.18
-      safetySpan = 0.32
-      safetyCenter = 0.22
-      safetyInk = 520
-      safetyOverlap = 0.10
+      minSpan = 0.24
+      maxCenterOffset = 0.28
+      tolerance = 26
+      minInk = 350
+      mainOverlap = 0.16
+      safetySpan = 0.30
+      safetyCenter = 0.24
+      safetyInk = 480
+      safetyOverlap = 0.09
     } else {
       // 6+ more precision expected
       minSpan = 0.30
@@ -199,7 +199,8 @@ export function DesenheLetraGame() {
       const b = userData[i + 2]
       const a = userData[i + 3]
 
-      if (a > 200 && b > 190 && r > 60 && g < 140) {
+      // More tolerant purple detection to catch thick brush strokes and anti-aliased edges
+      if (a > 80 && b > 130 && r > 20 && g < 200) {
         userInk++
         const ma = maskData[i + 3]
         if (ma > 50) {
@@ -209,6 +210,14 @@ export function DesenheLetraGame() {
     }
 
     const overlapRatio = overlapInk / Math.max(userInk, 1)
+
+    // For very young kids (3 or under), be extremely forgiving:
+    // as long as they made a visible mark that is somewhat large and in the general center area with some ink, count it.
+    if (childAge <= 3) {
+      if (drawnWidth > size * 0.18 && drawnHeight > size * 0.18 && centerDist < size * 0.40 && userInk > 80) {
+        return true;
+      }
+    }
 
     // Safety net based on age-adjusted params
     const isLargeAndCentered = (drawnWidth > size * safetySpan) && (drawnHeight > size * safetySpan) && (centerDist < size * safetyCenter)
