@@ -1,4 +1,4 @@
-import { useCurrentProfile } from '../stores/useChildProfile'
+import { useCurrentProfile, getChildDisplayName } from '../stores/useChildProfile'
 import { Alfafa } from './mascot/Alfafa'
 
 interface LetterCardProps {
@@ -59,13 +59,13 @@ function LetterCard({ letter, correct, attempts }: LetterCardProps) {
 export function MinhasLetras({ onBack }: { onBack: () => void }) {
   const profile = useCurrentProfile()
   const mastery = profile?.letterMastery || {}
-  const name = profile?.name || 'amiguinho'
+  const name = getChildDisplayName(profile)
 
   const practicedLetters = Object.entries(mastery)
     .sort(([a], [b]) => a.localeCompare(b))
 
   const totalPracticed = practicedLetters.length
-  const masteredCount = practicedLetters.filter(([_, data]) => {
+  const masteredCount = practicedLetters.filter(([, data]) => {
     const acc = data.attempts > 0 ? (data.correct / data.attempts) * 100 : 0
     return acc >= 80 && data.attempts >= 4
   }).length

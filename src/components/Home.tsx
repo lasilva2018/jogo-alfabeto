@@ -13,7 +13,7 @@ import { MinhasLetras } from './MinhasLetras'
 import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
 import { Alfafa } from './mascot/Alfafa'
-import { useChildProfile, useCurrentProfile, getChildVocative } from '../stores/useChildProfile'
+import { useChildProfile, useCurrentProfile, getChildVocative, getChildDisplayName } from '../stores/useChildProfile'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
@@ -28,13 +28,15 @@ export function Home() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
 
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
   const stars = profile?.stars || 0
 
   // Form simples para criar o primeiro perfil de criança (usado quando o responsável já autenticou via Supabase
   // mas ainda não tem nenhum perfil de criança cadastrado)
   const [showFirstProfileForm, setShowFirstProfileForm] = useState(false)
   const [firstName, setFirstName] = useState('')
+  const [firstAge, setFirstAge] = useState<number | null>(null)
   const [firstGender, setFirstGender] = useState<'masculino' | 'feminino' | null>(null)
   const [firstAvatar, setFirstAvatar] = useState('🐘')
 
@@ -45,9 +47,10 @@ export function Home() {
     if (trimmed.length < 2) return
     // Garante que a privacidade foi aceita (o responsável já viu a seção em Settings ao pedir o link)
     acceptPrivacy(true)
-    createProfileAction(trimmed, firstAvatar, undefined, firstGender ?? 'masculino')
+    createProfileAction(trimmed, firstAvatar, firstAge ?? undefined, firstGender ?? 'masculino')
     setShowFirstProfileForm(false)
     setFirstName('')
+    setFirstAge(null)
     setFirstGender(null)
     // O createProfile já cuida de sincronizar com a nuvem se autenticado
   }
@@ -278,9 +281,13 @@ export function Home() {
       <div className="px-6 pt-6 pb-2 flex items-start gap-4">
         <div 
           onClick={() => {
-            let greeting = `Olá ${childName}! Eu sou o Alfafa. Vamos brincar hoje?`
+            let greeting = speechName 
+              ? `Olá ${speechName}! Eu sou o Alfafa. Vamos brincar hoje?`
+              : `Olá! Eu sou o Alfafa. Vamos brincar hoje?`
             if (hasWeakLetters) {
-              greeting = `Olá ${childName}! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
+              greeting = speechName 
+                ? `Olá ${speechName}! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
+                : `Olá! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
             }
             getAudioManager().speakAsAlfafa(greeting)
           }}
@@ -291,7 +298,7 @@ export function Home() {
         <div className="pt-2 flex-1">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-purple-600 font-medium">Olá, {childName}!</div>
+              <div className="text-purple-600 font-medium">Olá, {displayName}!</div>
               <div className="text-3xl font-bold text-gray-800 leading-tight">O que vamos<br />brincar hoje?</div>
             </div>
             <button 
@@ -361,6 +368,21 @@ export function Home() {
                   </div>
                 </div>
 
+                <div>
+                  <div className="text-sm text-gray-600 mb-1 text-left">Idade (opcional, ajuda no jogo Desenhe a Letra)</div>
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {[3,4,5,6,7,8].map(a => (
+                      <button
+                        key={a}
+                        onClick={() => setFirstAge(a)}
+                        className={`px-3 py-1 rounded-2xl border text-sm ${firstAge === a ? 'bg-purple-600 text-white border-purple-600' : 'bg-white border-purple-200'}`}
+                      >
+                        {a}{a===8 ? '+' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-4 gap-3">
                   {AVATAR_OPTIONS.map((av) => (
                     <button
@@ -375,7 +397,7 @@ export function Home() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setShowFirstProfileForm(false); setFirstName(''); setFirstGender(null) }}
+                    onClick={() => { setShowFirstProfileForm(false); setFirstName(''); setFirstAge(null); setFirstGender(null) }}
                     className="flex-1 py-3 rounded-2xl border-2 border-gray-300 text-gray-600 font-medium"
                   >
                     Cancelar

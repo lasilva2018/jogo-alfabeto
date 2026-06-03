@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { supabase, isSupabaseEnabled, signInParentWithMagicLink, signOutParent, loadChildrenFromCloud, upsertChildToCloud, deleteChildFromCloud, pushAllLocalToCloud, syncOnLogin, onAuthStateChange } from '../lib/supabase'
+import { supabase, isSupabaseEnabled, signInParentWithMagicLink, signOutParent, loadChildrenFromCloud, upsertChildToCloud, deleteChildFromCloud, pushAllLocalToCloud, syncOnLogin, onAuthStateChange, mapCloudChildToLocal } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export interface ChildProfile {
@@ -15,11 +15,29 @@ export interface ChildProfile {
 }
 
 /**
- * Retorna o nome carinhoso para vocalizar:
- * - Se a criança tem nome real cadastrado → usa o nome (mais pessoal e legal: "Muito bem, Sofia!")
- * - Senão → "amiguinho" ou "amiguinha" de acordo com o gênero escolhido
+ * Retorna o nome para **vocalização** (TTS / fala do Alfafa):
+ * - Se a criança tem nome real cadastrado → usa o nome ("Muito bem, Sofia!")
+ * - Senão → string vazia (NÃO vocalizamos mais "amiguinho" ou "amiguinha" na voz)
+ *
+ * Use getChildDisplayName para textos de UI (Olá, listas, etc.) que podem mostrar "amiguinho/amiguinha".
  */
-export function getChildVocative(profile: ChildProfile | null): string {
+export function getChildVocative(profile: ChildProfile | null | { name?: string; gender?: 'masculino' | 'feminino' }): string {
+  if (!profile) return ''
+  const name = profile.name?.trim()
+  if (name && name.length > 1 && name !== 'Amiguinho' && name !== 'Amiguinha') {
+    return name
+  }
+  return '' // não vocalizar "amiguinho/amiguinha"
+}
+
+/**
+ * Retorna o nome carinhoso para **exibição na tela** (UI):
+ * - Se a criança tem nome real cadastrado → usa o nome
+ * - Senão → "amiguinho" ou "amiguinha" de acordo com o gênero escolhido
+ *
+ * Não use para speakPhrase / speakAsAlfafa (use getChildVocative para voz).
+ */
+export function getChildDisplayName(profile: ChildProfile | null | { name?: string; gender?: 'masculino' | 'feminino' }): string {
   if (!profile) return 'amiguinho'
   const name = profile.name?.trim()
   if (name && name.length > 1 && name !== 'Amiguinho' && name !== 'Amiguinha') {
@@ -280,16 +298,7 @@ export const useChildProfile = create<ChildProfileState>()(
           // Puxa o que está na nuvem (pode ter vindo de outro device)
           const cloudProfiles = await loadChildrenFromCloud()
           if (cloudProfiles.length > 0) {
-            const mapped = cloudProfiles.map((c) => ({
-              id: c.id,
-              name: c.name,
-              avatar: c.avatar,
-              age: c.age,
-              gender: c.gender,
-              stars: c.stars,
-              letterMastery: c.letter_mastery || {},
-              createdAt: c.created_at,
-            }))
+            const mapped = cloudProfiles.map(mapCloudChildToLocal)
             // Mantém o current se possível
             const stillExists = mapped.some((p) => p.id === state.currentProfileId)
             set({

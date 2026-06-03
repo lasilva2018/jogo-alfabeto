@@ -6,7 +6,7 @@ import {
   getOddOneOutRound, 
   OddOneOutRound 
 } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState extends OddOneOutRound {
@@ -17,7 +17,8 @@ interface GameState extends OddOneOutRound {
 
 export function QualNaoPertenceGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -58,7 +59,9 @@ export function QualNaoPertenceGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = `Isso mesmo, ${childName}! Essa começa com outra letra. Muito esperto!`
+      const speakText = speechName
+        ? `Isso mesmo, ${speechName}! Essa começa com outra letra. Muito esperto!`
+        : `Isso mesmo! Essa começa com outra letra. Muito esperto!`
       // Voz principal feminina - aguardamos a fala para não emendar na próxima
       await getAudioManager().speakPhrase(speakText)
 
@@ -76,7 +79,9 @@ export function QualNaoPertenceGame() {
       const correctWord = oddOption.example.word
       const correctLetter = oddOption.letter
       
-      const speakText = `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${childName}!`
+      const speakText = speechName
+        ? `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${speechName}!`
+        : `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}!`
       await getAudioManager().speakPhrase(speakText)
 
       // Só avança depois que a explicação terminar de ser falada
@@ -87,7 +92,9 @@ export function QualNaoPertenceGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     
-    const message = `Olha as três palavras, ${childName}. Qual não pertence?`
+    const message = speechName
+      ? `Olha as três palavras, ${speechName}. Qual não pertence?`
+      : `Olha as três palavras. Qual não pertence?`
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }
@@ -99,7 +106,7 @@ export function QualNaoPertenceGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Qual Não Pertence?</div>
           </div>
         </div>
@@ -203,7 +210,7 @@ export function QualNaoPertenceGame() {
                 exit={{ opacity: 0 }}
                 className="text-green-600 font-bold text-2xl"
               >
-                Muito esperto, {childName}! ⭐
+                Muito esperto, {displayName}! ⭐
               </motion.p>
             )}
             {game.lastResult === 'wrong' && (

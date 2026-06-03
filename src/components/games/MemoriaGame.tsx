@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS, getRandomExample, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface MemoryCard {
@@ -61,7 +61,8 @@ function generateMemoryCards(): MemoryCard[] {
 
 export function MemoriaGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -119,7 +120,9 @@ export function MemoriaGame() {
 
         await getAudioManager().playSuccess()
 
-        const speakText = `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem, ${childName}!`
+        const speakText = speechName
+          ? `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem, ${speechName}!`
+          : `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem!`
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -158,7 +161,9 @@ export function MemoriaGame() {
   const handleSpeakHint = () => {
     if (game.isChecking) return
 
-    const message = `Vire as cartas e encontre os pares, ${childName}!`
+    const message = speechName
+      ? `Vire as cartas e encontre os pares, ${speechName}!`
+      : `Vire as cartas e encontre os pares!`
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }
@@ -175,7 +180,7 @@ export function MemoriaGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Jogo da Memória</div>
           </div>
         </div>

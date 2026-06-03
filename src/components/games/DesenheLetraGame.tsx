@@ -3,12 +3,13 @@ import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 export function DesenheLetraGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
   const age = profile?.age ?? 4
 
   const [currentLetter, setCurrentLetter] = useState(() => 
@@ -274,8 +275,12 @@ export function DesenheLetraGame() {
     await getAudioManager().playSuccess()
 
     const message = isGood
-      ? `Muito bem, ${childName}! Você desenhou a letra ${currentLetter} lindamente!`
-      : `Quase, ${childName}! Tente desenhar mais parecido com a letra ${currentLetter}.`
+      ? speechName
+        ? `Muito bem, ${speechName}! Você desenhou a letra ${currentLetter} lindamente!`
+        : `Muito bem! Você desenhou a letra ${currentLetter} lindamente!`
+      : speechName
+        ? `Quase, ${speechName}! Tente desenhar mais parecido com a letra ${currentLetter}.`
+        : `Quase! Tente desenhar mais parecido com a letra ${currentLetter}.`
 
     // Voz principal feminina (Alice) para feedbacks de desenho
     getAudioManager().speakPhrase(message)
@@ -311,7 +316,7 @@ export function DesenheLetraGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Desenhe a Letra</div>
           </div>
         </div>
@@ -395,7 +400,7 @@ export function DesenheLetraGame() {
                 ? "text-green-600 font-bold text-2xl" 
                 : "text-amber-600 font-semibold text-xl"}
             >
-              {lastWasGood ? `Que lindo, ${childName}! ⭐` : `Quase! Vamos tentar a próxima.`}
+              {lastWasGood ? `Que lindo, ${displayName}! ⭐` : `Quase! Vamos tentar a próxima.`}
             </motion.p>
           )}
         </div>

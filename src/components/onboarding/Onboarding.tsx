@@ -42,7 +42,7 @@ export function Onboarding() {
     if (allow) {
       setStep('name')
     } else {
-      // Modo anônimo: sem nome (usaremos amiguinho/amiguinha pelo gênero)
+      // Modo anônimo: sem nome (usaremos "amiguinho/amiguinha" na interface pelo gênero)
       setName('')
       setStep('age')
     }
@@ -274,7 +274,7 @@ export function Onboarding() {
           </motion.div>
         )}
 
-        {/* Step: Gender - para o Alfafa falar "amiguinho" ou "amiguinha" */}
+        {/* Step: Gender - para mostrar "amiguinho" ou "amiguinha" na interface */}
         {step === 'gender' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -287,7 +287,7 @@ export function Onboarding() {
               Você é menino ou menina?
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Assim o Alfafa sabe se deve dizer "amiguinho" ou "amiguinha"!
+              Assim mostramos "amiguinho" ou "amiguinha" quando não cadastrar nome.
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-8">

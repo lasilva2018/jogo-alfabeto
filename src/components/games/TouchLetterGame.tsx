@@ -7,7 +7,7 @@ import {
   getRandomDistractors, 
   WordExample 
 } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U'] as const
@@ -25,7 +25,8 @@ interface GameState {
 
 export function TouchLetterGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -81,7 +82,9 @@ export function TouchLetterGame() {
       await getAudioManager().playSuccess()
       
       // Fala a letra + exemplo de forma carinhosa com o nome da criança (voz principal feminina)
-      const speakText = `Muito bem, ${childName}! ${game.currentLetter} de ${game.example.word}!`
+      const speakText = speechName
+        ? `Muito bem, ${speechName}! ${game.currentLetter} de ${game.example.word}!`
+        : `Muito bem! ${game.currentLetter} de ${game.example.word}!`
       await getAudioManager().speakPhrase(speakText)
 
       // Celebra e avança
@@ -97,7 +100,7 @@ export function TouchLetterGame() {
 
       // Depois de um tempo, revela a resposta certa e libera (voz principal feminina)
       setTimeout(async () => {
-        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}, ${childName}!`)
+        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}${speechName ? ', ' + speechName : ''}!`)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -123,7 +126,7 @@ export function TouchLetterGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">com Alfafa</div>
           </div>
         </div>
@@ -235,12 +238,12 @@ export function TouchLetterGame() {
         <div className="h-8 mt-6 text-center">
           {game.lastResult === 'wrong' && !game.isLocked && (
             <p className="text-orange-600 font-medium">
-              Quase, {childName}! Tenta de novo ✨
+              Quase, {displayName}! Tenta de novo ✨
             </p>
           )}
           {game.lastResult === 'correct' && (
             <p className="text-green-600 font-semibold text-lg">
-              Muito bem, {childName}!
+              Muito bem, {displayName}!
             </p>
           )}
         </div>

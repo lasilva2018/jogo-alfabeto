@@ -8,7 +8,7 @@ import {
   WordExample,
   Letter
 } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState {
@@ -22,7 +22,8 @@ interface GameState {
 
 export function QualComecoGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -70,7 +71,9 @@ export function QualComecoGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = `Isso, ${childName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
+      const speakText = speechName
+        ? `Isso, ${speechName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
+        : `Isso! ${game.example.word} começa com ${game.letter}! Muito bem!`
       // Voz principal feminina (Alice)
       await getAudioManager().speakPhrase(speakText)
 
@@ -84,7 +87,9 @@ export function QualComecoGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = `${game.example.word} começa com a letra ${game.letter}, ${childName}!`
+        const speakText = speechName
+          ? `${game.example.word} começa com a letra ${game.letter}, ${speechName}!`
+          : `${game.example.word} começa com a letra ${game.letter}!`
         // Voz principal feminina
         await getAudioManager().speakPhrase(speakText)
 
@@ -112,7 +117,7 @@ export function QualComecoGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Qual o Começo?</div>
           </div>
         </div>
@@ -199,12 +204,12 @@ export function QualComecoGame() {
         <div className="h-8 mt-8 text-center">
           {game.lastResult === 'wrong' && !game.isLocked && (
             <p className="text-orange-600 font-medium">
-              Quase, {childName}! Olha a letra certa ✨
+              Quase, {displayName}! Olha a letra certa ✨
             </p>
           )}
           {game.lastResult === 'correct' && (
             <p className="text-green-600 font-semibold text-lg">
-              Muito bem, {childName}!
+              Muito bem, {displayName}!
             </p>
           )}
         </div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GridItem {
@@ -76,7 +76,8 @@ function pickTargetLetter(): Letter {
 
 export function CacaPalavrasGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -125,7 +126,9 @@ export function CacaPalavrasGame() {
         useChildProfile.getState().addStars(2) // 2 stars: caça com múltiplos alvos é mais desafiadora
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
-        const speakText = `Isso, ${childName}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
+        const speakText = speechName
+          ? `Isso, ${speechName}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
+          : `Isso! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
         // Voz principal feminina - aguardamos para evitar sobreposição de áudio
         await getAudioManager().speakPhrase(speakText)
 
@@ -150,7 +153,9 @@ export function CacaPalavrasGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    const message = `Encontre todas as palavras que começam com a letra ${game.targetLetter}, ${childName}!`
+    const message = speechName
+      ? `Encontre todas as palavras que começam com a letra ${game.targetLetter}, ${speechName}!`
+      : `Encontre todas as palavras que começam com a letra ${game.targetLetter}!`
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }
@@ -164,7 +169,7 @@ export function CacaPalavrasGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Caça às Palavras</div>
           </div>
         </div>

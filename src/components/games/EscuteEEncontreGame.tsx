@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface WordExample {
@@ -61,7 +61,8 @@ function createNewRound(): GameState {
 
 export function EscuteEEncontreGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -105,7 +106,9 @@ export function EscuteEEncontreGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = `Isso mesmo, ${childName}! É ${game.target.word}! Muito bem!`
+      const speakText = speechName
+        ? `Isso mesmo, ${speechName}! É ${game.target.word}! Muito bem!`
+        : `Isso mesmo! É ${game.target.word}! Muito bem!`
       // Voz principal feminina - aguardamos a fala terminar antes de avançar
       // para evitar que o áudio da próxima rodada emende com o parabenizando anterior
       await getAudioManager().speakPhrase(speakText)
@@ -120,7 +123,9 @@ export function EscuteEEncontreGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = `Não foi essa... A palavra que eu falei foi ${game.target.word}, ${childName}!`
+        const speakText = speechName
+          ? `Não foi essa... A palavra que eu falei foi ${game.target.word}, ${speechName}!`
+          : `Não foi essa... A palavra que eu falei foi ${game.target.word}!`
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -144,7 +149,7 @@ export function EscuteEEncontreGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Escute e Encontre</div>
           </div>
         </div>
@@ -250,7 +255,7 @@ export function EscuteEEncontreGame() {
                 exit={{ opacity: 0 }}
                 className="text-green-600 font-bold text-2xl"
               >
-                Muito bem, {childName}! ⭐
+                Muito bem, {displayName}! ⭐
               </motion.p>
             )}
             {game.lastResult === 'wrong' && (

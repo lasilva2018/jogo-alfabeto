@@ -74,6 +74,23 @@ export interface CloudChild {
   updated_at: string
 }
 
+/**
+ * Mapeia um registro da nuvem (CloudChild) para o formato local do Zustand (ChildProfile).
+ * Centraliza para evitar drift entre syncOnLogin, syncNow etc.
+ */
+export function mapCloudChildToLocal(c: CloudChild) {
+  return {
+    id: c.id,
+    name: c.name,
+    avatar: c.avatar,
+    age: c.age,
+    gender: c.gender,
+    stars: c.stars,
+    letterMastery: c.letter_mastery || {},
+    createdAt: c.created_at,
+  }
+}
+
 export interface SupabaseAuthState {
   user: User | null
   session: Session | null
@@ -222,15 +239,7 @@ export async function syncOnLogin(localProfiles: any[]): Promise<{ profiles: any
   const cloud = await loadChildrenFromCloud()
 
   if (cloud.length > 0) {
-    const mapped = cloud.map((c) => ({
-      id: c.id,
-      name: c.name,
-      avatar: c.avatar,
-      age: c.age,
-      stars: c.stars,
-      letterMastery: c.letter_mastery || {},
-      createdAt: c.created_at,
-    }))
+    const mapped = cloud.map(mapCloudChildToLocal)
     return { profiles: mapped, usedCloud: true }
   }
 
@@ -238,15 +247,7 @@ export async function syncOnLogin(localProfiles: any[]): Promise<{ profiles: any
     await pushAllLocalToCloud(localProfiles)
     const fresh = await loadChildrenFromCloud()
     if (fresh.length > 0) {
-      const mapped = fresh.map((c) => ({
-        id: c.id,
-        name: c.name,
-        avatar: c.avatar,
-        age: c.age,
-        stars: c.stars,
-        letterMastery: c.letter_mastery || {},
-        createdAt: c.created_at,
-      }))
+      const mapped = fresh.map(mapCloudChildToLocal)
       return { profiles: mapped, usedCloud: false }
     }
   }

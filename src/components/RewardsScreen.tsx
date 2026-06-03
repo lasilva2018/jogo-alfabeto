@@ -1,4 +1,4 @@
-import { useCurrentProfile, getChildVocative } from '../stores/useChildProfile'
+import { useCurrentProfile, getChildVocative, getChildDisplayName } from '../stores/useChildProfile'
 import { motion } from 'framer-motion'
 import { Alfafa } from './mascot/Alfafa'
 import { getAudioManager } from '../lib/audio/AudioManager'
@@ -6,7 +6,8 @@ import { getAudioManager } from '../lib/audio/AudioManager'
 export function RewardsScreen({ onBack }: { onBack: () => void }) {
   const profile = useCurrentProfile()
   const stars = profile?.stars || 0
-  const name = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
+  const speechName = getChildVocative(profile)
 
   // Visual stars (show up to 30 for now, grouped)
   const displayedStars = Math.min(stars, 30)
@@ -30,7 +31,7 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
         <Alfafa mood="excited" size="xl" />
         
         <h1 className="text-4xl font-bold text-center text-purple-700 mb-2">
-          Seu Tesouro, {name}!
+          Seu Tesouro, {displayName}!
         </h1>
         
         <div className="flex items-baseline gap-3 mb-8">
@@ -74,7 +75,9 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
               stars === 0 ? "Vamos ganhar nossa primeira estrelinha juntos?" :
               stars < 10 ? "Você está indo muito bem! Continue assim!" :
               stars < 25 ? "Uau, olha quantas estrelinhas! Eu estou muito orgulhoso de você!" :
-              `Você é um campeão das letras, ${name}! O Alfafa te ama!`
+              speechName 
+                ? `Você é um campeão das letras, ${speechName}! O Alfafa te ama!`
+                : "Você é um campeão das letras! O Alfafa te ama!"
 
             getAudioManager().speakAsAlfafa(message)
           }}
@@ -84,7 +87,7 @@ export function RewardsScreen({ onBack }: { onBack: () => void }) {
             {stars === 0 && "Vamos ganhar nossa primeira estrelinha juntos?"}
             {stars > 0 && stars < 10 && "Você está indo muito bem! Continue assim!"}
             {stars >= 10 && stars < 25 && "Uau, olha quantas estrelinhas! Eu estou muito orgulhoso de você!"}
-            {stars >= 25 && "Você é um campeão das letras, " + name + "! O Alfafa te ama!"}
+            {stars >= 25 && "Você é um campeão das letras, " + displayName + "! O Alfafa te ama!"}
           </p>
           <p className="text-[10px] text-purple-500 mt-2">Toque no Alfafa para ouvir</p>
         </div>

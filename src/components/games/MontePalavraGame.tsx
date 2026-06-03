@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface WordForBuilding {
@@ -56,7 +56,8 @@ function generateAvailableLetters(targetLetters: string[]): string[] {
 
 export function MontePalavraGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -108,7 +109,9 @@ export function MontePalavraGame() {
         await getAudioManager().playSuccess()
 
         const fullWord = game.target.word
-        const speakText = `Perfeito, ${childName}! Você montou ${fullWord} certinho! Que legal!`
+        const speakText = speechName
+          ? `Perfeito, ${speechName}! Você montou ${fullWord} certinho! Que legal!`
+          : `Perfeito! Você montou ${fullWord} certinho! Que legal!`
         // Voz principal feminina - aguardamos terminar antes de avançar
         await getAudioManager().speakPhrase(speakText)
 
@@ -145,7 +148,9 @@ export function MontePalavraGame() {
   }
 
   const handleSpeakHint = () => {
-    const message = `Monte a palavra ${game.target.word} tocando as letras na ordem certa, ${childName}!`
+    const message = speechName
+      ? `Monte a palavra ${game.target.word} tocando as letras na ordem certa, ${speechName}!`
+      : `Monte a palavra ${game.target.word} tocando as letras na ordem certa!`
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }
@@ -159,7 +164,7 @@ export function MontePalavraGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Monte a Palavra</div>
           </div>
         </div>

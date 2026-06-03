@@ -1,4 +1,4 @@
-import { useChildProfile } from '../stores/useChildProfile'
+import { useChildProfile, getChildDisplayName, type ChildProfile } from '../stores/useChildProfile'
 import { useState } from 'react'
 import { PrivacyPolicy } from './PrivacyPolicy'
 import { TermsOfUse } from './TermsOfUse'
@@ -13,6 +13,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
     deleteProfile,
     clearAllData,
     acceptPrivacy,
+    updateProfile,
     // Supabase auth/sync
     supabaseUser,
     isSyncing,
@@ -34,6 +35,13 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
   const [addAge, setAddAge] = useState<number | null>(null)
   const [addGender, setAddGender] = useState<'masculino' | 'feminino' | null>(null)
   const [addAvatar, setAddAvatar] = useState('🐘')
+
+  // Edit current profile form
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editAge, setEditAge] = useState<number | null>(null)
+  const [editGender, setEditGender] = useState<'masculino' | 'feminino' | null>(null)
+  const [editAvatar, setEditAvatar] = useState('🐘')
 
   const handleDeleteCurrent = () => {
     if (!currentProfileId) return
@@ -58,6 +66,35 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
     setAddGender(null)
     setAddAvatar('🐘')
     setShowAddForm(false)
+  }
+
+  const handleStartEdit = () => {
+    const current = profiles.find(p => p.id === currentProfileId)
+    if (!current) return
+    setEditName(current.name || '')
+    setEditAge(current.age ?? null)
+    setEditGender(current.gender ?? null)
+    setEditAvatar(current.avatar || '🐘')
+    setShowEditForm(true)
+    setShowAddForm(false)
+  }
+
+  const handleSaveEdit = () => {
+    if (!currentProfileId) return
+    const updates: Partial<ChildProfile> = {}
+    const trimmed = editName.trim()
+    if (trimmed.length >= 2) updates.name = trimmed
+    if (editAge != null) updates.age = editAge
+    if (editGender) updates.gender = editGender
+    if (editAvatar) updates.avatar = editAvatar
+    if (Object.keys(updates).length > 0) {
+      updateProfile(updates)
+    }
+    setShowEditForm(false)
+  }
+
+  const handleCancelEdit = () => {
+    setShowEditForm(false)
   }
 
   return (
@@ -93,7 +130,14 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
               >
                 <div className="text-4xl">{p.avatar}</div>
                 <div className="flex-1">
-                  <div className="font-semibold text-lg">{p.name}</div>
+                  <div className="font-semibold text-lg flex items-center gap-2">
+                    {getChildDisplayName(p)}
+                    {p.gender && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${p.gender === 'feminino' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
+                        {p.gender === 'feminino' ? '👧' : '👦'}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-sm text-gray-500">{p.age ? `${p.age} anos • ` : ''}{p.stars} estrelinhas</div>
                 </div>
                 {p.id === currentProfileId && (
@@ -119,7 +163,16 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
             </button>
           </div>
 
-          {!showAddForm && (
+          {currentProfileId && !showEditForm && !showAddForm && (
+            <button 
+              onClick={handleStartEdit}
+              className="w-full mt-3 py-3 rounded-2xl border-2 border-purple-200 text-purple-700 font-medium active:bg-purple-50"
+            >
+              ✏️ Editar perfil atual (nome, idade, gênero)
+            </button>
+          )}
+
+          {!showAddForm && !showEditForm && (
             <button 
               onClick={() => setShowAddForm(true)}
               className="w-full mt-3 py-3 rounded-2xl bg-purple-100 text-purple-700 font-medium active:bg-purple-200"
@@ -156,7 +209,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
               </div>
 
               <div className="mb-3">
-                <div className="text-sm mb-1">Gênero (para o Alfafa falar "amiguinho" ou "amiguinha")</div>
+                <div className="text-sm mb-1">Gênero (para mostrar "amiguinho" ou "amiguinha" quando não usar nome)</div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setAddGender('masculino')}
@@ -201,6 +254,83 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
                   className="flex-1 py-2 bg-purple-600 text-white rounded-2xl disabled:bg-gray-300"
                 >
                   Criar perfil
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showEditForm && (
+            <div className="mt-4 p-4 border-2 border-purple-200 rounded-3xl bg-purple-50">
+              <div className="font-semibold mb-3">Editar perfil atual</div>
+              
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Nome ou apelido"
+                className="w-full mb-3 px-4 py-2 rounded-2xl border-2 border-purple-200 text-lg"
+              />
+
+              <div className="mb-3">
+                <div className="text-sm mb-1">Idade</div>
+                <div className="flex gap-2 flex-wrap">
+                  {[3,4,5,6,7,8].map(a => (
+                    <button
+                      key={a}
+                      onClick={() => setEditAge(a)}
+                      className={`px-4 py-1 rounded-2xl border ${editAge === a ? 'bg-purple-600 text-white border-purple-600' : 'bg-white border-purple-200'}`}
+                    >
+                      {a}{a===8 ? '+' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="text-sm mb-1">Gênero (para mostrar "amiguinho" ou "amiguinha" quando não usar nome)</div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditGender('masculino')}
+                    className={`flex-1 py-2 rounded-2xl border text-lg ${editGender === 'masculino' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-blue-200'}`}
+                  >
+                    👦 Menino
+                  </button>
+                  <button
+                    onClick={() => setEditGender('feminino')}
+                    className={`flex-1 py-2 rounded-2xl border text-lg ${editGender === 'feminino' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white border-pink-200'}`}
+                  >
+                    👧 Menina
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="text-sm mb-1">Avatar</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {['🐘','🦁','🐻','🐰','🐼','🦒','🐢','🦊'].map(av => (
+                    <button
+                      key={av}
+                      onClick={() => setEditAvatar(av)}
+                      className={`text-3xl p-2 rounded-2xl border-2 ${editAvatar === av ? 'border-purple-500 bg-purple-100' : 'border-gray-200'}`}
+                    >
+                      {av}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleCancelEdit}
+                  className="flex-1 py-2 rounded-2xl border border-gray-300"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleSaveEdit}
+                  className="flex-1 py-2 bg-purple-600 text-white rounded-2xl active:bg-purple-700"
+                >
+                  Salvar alterações
                 </button>
               </div>
             </div>

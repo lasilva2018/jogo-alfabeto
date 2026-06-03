@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 type Letter = string
@@ -41,7 +41,8 @@ function generateGrid(target: Letter): Letter[] {
 
 export function CacaLetraGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -93,7 +94,9 @@ export function CacaLetraGame() {
         useChildProfile.getState().addStars(1)
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
-        const speakText = `Isso, ${childName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
+        const speakText = speechName
+          ? `Isso, ${speechName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
+          : `Isso! Você encontrou todas as ${game.targetLetter}! Muito bem!`
         // Voz principal feminina
         await getAudioManager().speakPhrase(speakText)
 
@@ -117,7 +120,9 @@ export function CacaLetraGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    const speakText = `Encontre todas as letras ${game.targetLetter}, ${childName}!`
+    const speakText = speechName
+      ? `Encontre todas as letras ${game.targetLetter}, ${speechName}!`
+      : `Encontre todas as letras ${game.targetLetter}!`
     // Voz principal feminina
     getAudioManager().speakPhrase(speakText)
   }
@@ -131,7 +136,7 @@ export function CacaLetraGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Caça à Letra</div>
           </div>
         </div>
@@ -232,7 +237,7 @@ export function CacaLetraGame() {
                 exit={{ opacity: 0 }}
                 className="text-orange-600 font-medium"
               >
-                Essa não é {game.targetLetter}, {childName}. Tenta outra!
+                Essa não é {game.targetLetter}, {displayName}. Tenta outra!
               </motion.p>
             )}
             {foundCount === game.totalToFind && (
@@ -241,7 +246,7 @@ export function CacaLetraGame() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-green-600 font-bold text-xl"
               >
-                Parabéns, {childName}! Você conseguiu! ⭐
+                Parabéns, {displayName}! Você conseguiu! ⭐
               </motion.p>
             )}
           </AnimatePresence>

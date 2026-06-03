@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { getRandomWord, getRandomDistractors } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState {
@@ -18,7 +18,8 @@ interface GameState {
 
 export function CompletePalavraGame() {
   const { profile } = useChildProfile()
-  const childName = getChildVocative(profile)
+  const speechName = getChildVocative(profile)
+  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -72,7 +73,9 @@ export function CompletePalavraGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = `Isso, ${childName}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
+      const speakText = speechName
+        ? `Isso, ${speechName}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
+        : `Isso! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
       // Voz principal feminina - aguardamos terminar para não emendar com próxima rodada
       await getAudioManager().speakPhrase(speakText)
 
@@ -86,7 +89,7 @@ export function CompletePalavraGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = `A letra certa aqui é ${game.correctLetter}, ${childName}!`
+        const speakText = `A letra certa aqui é ${game.correctLetter}${speechName ? ', ' + speechName : ''}!`
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -123,7 +126,7 @@ export function CompletePalavraGame() {
         <div className="flex items-center gap-3">
           <div className="text-4xl">{profile?.avatar || '🐘'}</div>
           <div>
-            <div className="text-sm font-medium text-purple-700">{profile?.name || 'Alfafa'}</div>
+            <div className="text-sm font-medium text-purple-700">{displayName}</div>
             <div className="text-[10px] text-gray-500 -mt-0.5">Complete a Palavra</div>
           </div>
         </div>
@@ -206,12 +209,12 @@ export function CompletePalavraGame() {
         <div className="h-8 mt-8 text-center">
           {game.lastResult === 'wrong' && !game.isLocked && (
             <p className="text-orange-600 font-medium">
-              Quase, {childName}! A letra certa é {game.correctLetter} ✨
+              Quase, {displayName}! A letra certa é {game.correctLetter} ✨
             </p>
           )}
           {game.lastResult === 'correct' && (
             <p className="text-green-600 font-semibold text-lg">
-              Muito bem, {childName}!
+              Muito bem, {displayName}!
             </p>
           )}
         </div>
