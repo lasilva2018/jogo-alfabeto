@@ -38,12 +38,13 @@ export function DesenheLetraGame() {
     canvas.height = size
 
     // Line width age-appropriate: thicker for young (poor motor control), thinner for older (more precision expected)
+    // Matches the maskLineWidth in thresholds for consistent "feel" of the guide vs drawing.
     let lineW = 26
     if (age <= 4) lineW = 28
     else if (age === 5) lineW = 22
     else if (age === 6) lineW = 18
     else if (age === 7) lineW = 14
-    else lineW = 12 // 8+
+    else lineW = 11 // 8+
 
     ctx.lineWidth = lineW
     ctx.lineCap = 'round'
@@ -181,13 +182,14 @@ export function DesenheLetraGame() {
           minPath: 520
         };
       } else {
-        // 8+ : expect more control, but still very forgiving for finger drawing (per pedagogy)
+        // 8+ : expect more control (per child development advice). Finger on tablet is imprecise,
+        // but a random huge V should not pass as D. Higher bars + the new mask-relative size/center checks.
         return {
-          minSpan: 0.36, maxCenterOffset: 0.10, tolerance: 6, minInk: 1150,
-          mainOverlap: 0.40, minCoverage: 0.30,
-          safetySpan: 0.42, safetyCenter: 0.08, safetyInk: 1400, safetyOverlap: 0.28, safetyCoverage: 0.20,
-          useFillMask: false, maskLineWidth: 12,
-          minPath: 680
+          minSpan: 0.40, maxCenterOffset: 0.09, tolerance: 5, minInk: 1300,
+          mainOverlap: 0.45, minCoverage: 0.35,
+          safetySpan: 0.45, safetyCenter: 0.07, safetyInk: 1600, safetyOverlap: 0.30, safetyCoverage: 0.22,
+          useFillMask: false, maskLineWidth: 11,
+          minPath: 750
         };
       }
     }
@@ -274,7 +276,42 @@ export function DesenheLetraGame() {
     }
     const effCenterDist = Math.hypot(effCx - canvasCx, effCy - canvasCy);
 
-    // BBox reject (use effective when available)
+    // === NEW: Compute actual mask (letter guide) bbox for size/position matching ===
+    // This is critical to reject oversized scribbles (like a huge V over a small D guide)
+    // that only "graze" the target with a thick stroke.
+    let maskMinX = size, maskMaxX = 0, maskMinY = size, maskMaxY = 0;
+    for (let i = 0; i < maskData.length; i += 4) {
+      if (maskData[i + 3] > 50) {
+        const x = (i / 4) % size;
+        const y = Math.floor((i / 4) / size);
+        if (x < maskMinX) maskMinX = x;
+        if (x > maskMaxX) maskMaxX = x;
+        if (y < maskMinY) maskMinY = y;
+        if (y > maskMaxY) maskMaxY = y;
+      }
+    }
+    const maskW = Math.max(1, maskMaxX - maskMinX);
+    const maskH = Math.max(1, maskMaxY - maskMinY);
+    const maskCx = (maskMinX + maskMaxX) / 2;
+    const maskCy = (maskMinY + maskMaxY) / 2;
+
+    // For 6+, require the user's drawing to be roughly the same *size* as the guide letter (not 3-5x larger)
+    // and centered on it. This directly kills cases like huge V "covering" a tiny D.
+    if (childAge >= 6) {
+      if (effWidth > maskW * 2.8 || effHeight > maskH * 2.8) {
+        return false; // oversized scribble over the small guide
+      }
+      if (effWidth < maskW * 0.35 || effHeight < maskH * 0.35) {
+        return false;
+      }
+      const centerDiff = Math.hypot(effCx - maskCx, effCy - maskCy);
+      const maxCenterDiff = Math.max(maskW, maskH) * 0.40;
+      if (centerDiff > maxCenterDiff) {
+        return false; // drawing center too far from the actual letter guide center
+      }
+    }
+
+    // BBox reject (canvas relative, use effective when available)
     if (effWidth < size * t.minSpan || effHeight < size * t.minSpan || effCenterDist > size * t.maxCenterOffset) {
       return false;
     }
@@ -299,7 +336,8 @@ export function DesenheLetraGame() {
         age: childAge, letter,
         userInk, overlapRatio: overlapRatio.toFixed(2), coverageRatio: coverageRatio.toFixed(2),
         pathLength: Math.round(pathLength), effW: Math.round(effWidth), effH: Math.round(effHeight),
-        effCenter: Math.round(effCenterDist), passesPrecision, passesCoverage, t
+        effCenter: Math.round(effCenterDist), maskW: Math.round(maskW), maskH: Math.round(maskH),
+        passesPrecision, passesCoverage, t
       });
     }
 
