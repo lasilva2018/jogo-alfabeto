@@ -522,6 +522,18 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
         >
           Voltar para os jogos
         </button>
+
+        <button 
+          onClick={() => {
+            // Para abrir relatórios, o usuário volta para home e clica no botão
+            // (simples para não complicar navegação)
+            onBack()
+            // Nota: em uma versão futura podemos passar callback de navegação
+          }}
+          className="w-full mt-2 py-3 rounded-2xl border border-emerald-300 text-emerald-700 font-medium active:bg-emerald-50"
+        >
+          📊 Abrir Relatórios para Pais (na tela inicial)
+        </button>
       </div>
 
       {/* Privacy Modal - usa o componente compartilhado bonito */}

@@ -12,13 +12,14 @@ import { RewardsScreen } from './RewardsScreen'
 import { MinhasLetras } from './MinhasLetras'
 import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
+import { ReportsScreen } from './ReportsScreen'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile, useCurrentProfile, getChildVocative, getChildDisplayName } from '../stores/useChildProfile'
 import type { ChildProfile } from '../types'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'settings' | 'premium'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'reports' | 'settings' | 'premium'
 
 export function Home() {
   const profile = useCurrentProfile()
@@ -273,6 +274,10 @@ export function Home() {
 
   if (currentScreen === 'minhas-letras') {
     return <MinhasLetras onBack={() => setCurrentScreen('home')} />
+  }
+
+  if (currentScreen === 'reports') {
+    return <ReportsScreen onBack={() => setCurrentScreen('home')} />
   }
 
   // Home / Game Selector
@@ -596,6 +601,20 @@ export function Home() {
             <div className="flex-1">
               <div className="text-3xl font-bold text-blue-600">Minhas Letras</div>
               <div className="text-lg text-gray-600 mt-1">Veja seu progresso!</div>
+            </div>
+          </div>
+        </button>
+
+        {/* Relatórios para Pais (visível para todos, útil para acompanhar desenvolvimento) */}
+        <button
+          onClick={() => setCurrentScreen('reports')}
+          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-emerald-200 active:scale-[0.985] transition-transform text-left"
+        >
+          <div className="flex items-center gap-5">
+            <div className="text-6xl">📊</div>
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-emerald-600">Relatórios para Pais</div>
+              <div className="text-lg text-gray-600 mt-1">Progresso detalhado por letra</div>
             </div>
           </div>
         </button>
