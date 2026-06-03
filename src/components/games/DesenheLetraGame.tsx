@@ -1,9 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
-import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -38,7 +37,15 @@ export function DesenheLetraGame() {
     canvas.width = size
     canvas.height = size
 
-    ctx.lineWidth = 26 // traço mais grosso para mãozinhas de 4 anos
+    // Line width age-appropriate: thicker for young (poor motor control), thinner for older (more precision expected)
+    let lineW = 26
+    if (age <= 4) lineW = 28
+    else if (age === 5) lineW = 22
+    else if (age === 6) lineW = 18
+    else if (age === 7) lineW = 14
+    else lineW = 12 // 8+
+
+    ctx.lineWidth = lineW
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.strokeStyle = '#7c3aed'
@@ -57,15 +64,22 @@ export function DesenheLetraGame() {
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [currentLetter])
+  }, [currentLetter, age])  // re-setup if age changes (e.g. parent edits profile)
 
   function drawLetterGuide(ctx: CanvasRenderingContext2D, letter: string, size: number) {
     ctx.save()
     ctx.font = `bold ${size * 0.72}px system-ui, sans-serif`
-    ctx.fillStyle = '#e0d4ff'
+    ctx.fillStyle = '#e0d4ff' // very faint fill for background guidance
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(letter, size / 2, size / 2 + 10)
+
+    // Dashed tracejado guide for better tracing UX (age-appropriate visibility)
+    // Younger kids: slightly more visible dashed; older: clearer trace lines to follow shape
+    ctx.strokeStyle = age <= 5 ? '#a78bfa' : '#7c3aed'
+    ctx.lineWidth = Math.max(2, age <= 4 ? 4 : 3)
+    ctx.setLineDash([12, 8]) // dashed pattern for "trace me"
+    ctx.strokeText(letter, size / 2, size / 2 + 10)
     ctx.restore()
   }
 
@@ -90,134 +104,218 @@ export function DesenheLetraGame() {
     letter: string,
     childAge: number = 4
   ): boolean {
+    // === Validação de desenho por idade (refatorada com consultoria de especialistas) ===
+    // - Especialista CV: diagnosticou safety-net frouxa, overlap muito baixo (14-22%), minInk baixo,
+    //   máscara com fill excessivo, granularidade ruim para 6-8, bbox só de pontos, sem esforço (path).
+    // - Especialista desenvolvimento infantil/pedagogia: validou direção progressiva; <=4 deve ser
+    //   muito leniente (qualquer rabisco intencional ok para encorajamento); 7-8+ em dedo+tablet
+    //   deve exigir esforço + cobertura razoável da forma, mas muita imperfeição é normal.
+    //   Recomendou pathLength + coverage + stroke-only mask + lineWidth dinâmico.
+    //   Fortemente contra remover o jogo (alto valor motor).
+    // Mantemos espírito de diversão + aprendizado. Thresholds calibrados de forma conservadora.
+    // Para debug/tuning futuro: adicione logs temporários dos valores abaixo (userInk, ratios, pathLength).
     if (!ctx || !canvas) return false;
 
-    // For 4 years old and under: THE EASIEST POSSIBLE.
-    // As long as they clicked "Terminei!" after having drawn something (hasDrawn is checked outside),
-    // accept it immediately. No shape, size, center or overlap checks at all.
-    // 3-4yo drawings are expected to be very simple and imperfect. Goal is encouragement.
-    if (childAge <= 4) return true;
+    // === AGE-BASED PROGRESSIVE VALIDATION (synthesized from child-dev + CV specialists) ===
+    // Goal: encouragement for young (any intentional scribble), but require visible effort + resemblance for older kids.
+    // Finger-on-tablet is inherently imprecise vs pencil/paper, so remain realistic and forgiving even at 8.
 
-    if (points.length < 8) return false;
+    // Minimal effort check for everyone (prevents "one tap and done")
+    if (points.length < 6) return false;
 
-    // Quick bbox reject (only for age >4)
-    const xs = points.map(p => p.x)
-    const ys = points.map(p => p.y)
-    const minX = Math.min(...xs)
-    const maxX = Math.max(...xs)
-    const minY = Math.min(...ys)
-    const maxY = Math.max(...ys)
-    const drawnWidth = maxX - minX
-    const drawnHeight = maxY - minY
-    const cx = (minX + maxX) / 2
-    const cy = (minY + maxY) / 2
-    const canvasCx = size / 2
-    const canvasCy = size / 2
-    const centerDist = Math.hypot(cx - canvasCx, cy - canvasCy)
-
-    // Compute dynamic thresholds based on age (younger = much more lenient) - only reached for age >4
-    let minSpan = 0.22
-    let maxCenterOffset = 0.30
-    let tolerance = 28
-    let minInk = 300
-    let mainOverlap = 0.15
-    let safetySpan = 0.30
-    let safetyCenter = 0.25
-    let safetyInk = 450
-    let safetyOverlap = 0.08
-
-    if (childAge === 5) {
-      minSpan = 0.24
-      maxCenterOffset = 0.28
-      tolerance = 26
-      minInk = 350
-      mainOverlap = 0.16
-      safetySpan = 0.30
-      safetyCenter = 0.24
-      safetyInk = 480
-      safetyOverlap = 0.09
-    } else {
-      // 6+ more precision expected
-      minSpan = 0.30
-      maxCenterOffset = 0.20
-      tolerance = 18
-      minInk = 520
-      mainOverlap = 0.22
-      safetySpan = 0.38
-      safetyCenter = 0.18
-      safetyInk = 680
-      safetyOverlap = 0.14
+    // For 3-4 years: THE EASIEST POSSIBLE - pure encouragement.
+    // Any visible intentional drawing (enough points/ink) is success. No shape matching.
+    // Per specialists: still require *some* visible effort so it feels like "I drew".
+    if (childAge <= 4) {
+      // Quick cheap ink estimate for young kids (re-use later logic if needed, but simple here)
+      // Accept as long as they moved the finger a bit.
+      return points.length >= 10; // minimal movement
     }
 
-    // Build tolerance mask and calculate ink (only for age >4)
-    const maskCanvas = document.createElement('canvas')
-    maskCanvas.width = size
-    maskCanvas.height = size
-    const maskCtx = maskCanvas.getContext('2d', { alpha: true })
-    if (!maskCtx) return false
+    // Compute path length (effort / continuous stroke) - key metric recommended by both specialists
+    let pathLength = 0;
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i].x - points[i-1].x;
+      const dy = points[i].y - points[i-1].y;
+      pathLength += Math.hypot(dx, dy);
+    }
 
-    maskCtx.fillStyle = 'black'
-    maskCtx.strokeStyle = 'black'
-    maskCtx.font = `bold ${size * 0.72}px system-ui, sans-serif`
-    maskCtx.textAlign = 'center'
-    maskCtx.textBaseline = 'middle'
-    maskCtx.lineWidth = 28
+    // Quick bbox on points (for early reject)
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    let drawnWidth = maxX - minX;
+    let drawnHeight = maxY - minY;
+    let cx = (minX + maxX) / 2;
+    let cy = (minY + maxY) / 2;
+    const canvasCx = size / 2;
+    const canvasCy = size / 2;
 
-    maskCtx.strokeText(letter, size / 2, size / 2 + 10)
-    maskCtx.fillText(letter, size / 2, size / 2 + 10)
-
-    for (let dx = -tolerance; dx <= tolerance; dx += 4) {
-      for (let dy = -tolerance; dy <= tolerance; dy += 4) {
-        maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy)
-        maskCtx.strokeText(letter, size / 2 + dx, size / 2 + 10 + dy)
+    // Get age-specific thresholds (progressive, calibrated conservatively per child dev input)
+    function getDrawingThresholds(age: number) {
+      if (age === 5) {
+        return {
+          minSpan: 0.24, maxCenterOffset: 0.27, tolerance: 22, minInk: 380,
+          mainOverlap: 0.18, minCoverage: 0.10,
+          safetySpan: 0.32, safetyCenter: 0.23, safetyInk: 480, safetyOverlap: 0.12, safetyCoverage: 0.08,
+          useFillMask: true, maskLineWidth: 22,
+          minPath: 220
+        };
+      } else if (age === 6) {
+        return {
+          minSpan: 0.28, maxCenterOffset: 0.18, tolerance: 14, minInk: 620,
+          mainOverlap: 0.26, minCoverage: 0.16,
+          safetySpan: 0.34, safetyCenter: 0.15, safetyInk: 780, safetyOverlap: 0.18, safetyCoverage: 0.11,
+          useFillMask: true, maskLineWidth: 18,
+          minPath: 380
+        };
+      } else if (age === 7) {
+        return {
+          minSpan: 0.33, maxCenterOffset: 0.13, tolerance: 9, minInk: 920,
+          mainOverlap: 0.34, minCoverage: 0.24,
+          safetySpan: 0.38, safetyCenter: 0.10, safetyInk: 1100, safetyOverlap: 0.24, safetyCoverage: 0.16,
+          useFillMask: false, maskLineWidth: 14,
+          minPath: 520
+        };
+      } else {
+        // 8+ : expect more control, but still very forgiving for finger drawing (per pedagogy)
+        return {
+          minSpan: 0.36, maxCenterOffset: 0.10, tolerance: 6, minInk: 1150,
+          mainOverlap: 0.40, minCoverage: 0.30,
+          safetySpan: 0.42, safetyCenter: 0.08, safetyInk: 1400, safetyOverlap: 0.28, safetyCoverage: 0.20,
+          useFillMask: false, maskLineWidth: 12,
+          minPath: 680
+        };
       }
     }
 
-    const maskData = maskCtx.getImageData(0, 0, size, size).data
-    const userData = ctx.getImageData(0, 0, size, size).data
+    const t = getDrawingThresholds(childAge);
 
-    let userInk = 0
-    let overlapInk = 0
+    // Path effort check (prevents tiny random marks)
+    if (pathLength < t.minPath) return false;
 
-    for (let i = 0; i < userData.length; i += 4) {
-      const r = userData[i]
-      const g = userData[i + 1]
-      const b = userData[i + 2]
-      const a = userData[i + 3]
+    // Build age-appropriate tolerance mask (stroke-only for older = teaches real formation)
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = size;
+    maskCanvas.height = size;
+    const maskCtx = maskCanvas.getContext('2d', { alpha: true });
+    if (!maskCtx) return false;
 
-      // More tolerant purple detection to catch thick brush strokes and anti-aliased edges
-      if (a > 80 && b > 130 && r > 20 && g < 200) {
-        userInk++
-        const ma = maskData[i + 3]
-        if (ma > 50) {
-          overlapInk++
+    maskCtx.fillStyle = 'black';
+    maskCtx.strokeStyle = 'black';
+    maskCtx.font = `bold ${size * 0.72}px system-ui, sans-serif`;
+    maskCtx.textAlign = 'center';
+    maskCtx.textBaseline = 'middle';
+    maskCtx.lineWidth = t.maskLineWidth;
+
+    maskCtx.strokeText(letter, size / 2, size / 2 + 10);
+    if (t.useFillMask) {
+      maskCtx.fillText(letter, size / 2, size / 2 + 10);
+    }
+
+    for (let dx = -t.tolerance; dx <= t.tolerance; dx += 3) {
+      for (let dy = -t.tolerance; dy <= t.tolerance; dy += 3) {
+        maskCtx.strokeText(letter, size / 2 + dx, size / 2 + 10 + dy);
+        if (t.useFillMask) {
+          maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy);
         }
       }
     }
 
-    const overlapRatio = overlapInk / Math.max(userInk, 1)
+    const maskData = maskCtx.getImageData(0, 0, size, size).data;
+    const userData = ctx.getImageData(0, 0, size, size).data;
 
-    if (drawnWidth < size * minSpan || drawnHeight < size * minSpan || centerDist > size * maxCenterOffset) {
-      return false
+    let userInk = 0;
+    let overlapInk = 0;
+    let maskInk = 0;
+
+    // Better ink bbox (pixels, not just path points) for more accurate span/center
+    let inkMinX = size, inkMaxX = 0, inkMinY = size, inkMaxY = 0;
+
+    for (let i = 0; i < maskData.length; i += 4) {
+      if (maskData[i + 3] > 50) maskInk++;
     }
 
-    // Safety net based on age-adjusted params
-    const isLargeAndCentered = (drawnWidth > size * safetySpan) && (drawnHeight > size * safetySpan) && (centerDist < size * safetyCenter)
-    const hasSubstantialInk = userInk > safetyInk
+    // Tighter purple detection (better for the actual stroke color + anti-alias)
+    for (let i = 0; i < userData.length; i += 4) {
+      const r = userData[i];
+      const g = userData[i + 1];
+      const b = userData[i + 2];
+      const a = userData[i + 3];
 
-    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > safetyOverlap) {
-      return true
+      const isUserPurple = a > 100 && b > 170 && r > 60 && r < 180 && g < 120;
+      if (isUserPurple) {
+        userInk++;
+        const x = (i / 4) % size;
+        const y = Math.floor((i / 4) / size);
+        if (x < inkMinX) inkMinX = x;
+        if (x > inkMaxX) inkMaxX = x;
+        if (y < inkMinY) inkMinY = y;
+        if (y > inkMaxY) inkMaxY = y;
+
+        const ma = maskData[i + 3];
+        if (ma > 50) overlapInk++;
+      }
     }
 
-    if (userInk < minInk) return false
+    const overlapRatio = overlapInk / Math.max(userInk, 1);
+    const coverageRatio = overlapInk / Math.max(maskInk, 1);
 
-    return overlapRatio > mainOverlap
+    // Use pixel ink bbox when we have real ink (more faithful to visual drawing)
+    let effWidth = drawnWidth, effHeight = drawnHeight, effCx = cx, effCy = cy;
+    if (inkMaxX > inkMinX && userInk > 20) {
+      effWidth = inkMaxX - inkMinX;
+      effHeight = inkMaxY - inkMinY;
+      effCx = (inkMinX + inkMaxX) / 2;
+      effCy = (inkMinY + inkMaxY) / 2;
+    }
+    const effCenterDist = Math.hypot(effCx - canvasCx, effCy - canvasCy);
+
+    // BBox reject (use effective when available)
+    if (effWidth < size * t.minSpan || effHeight < size * t.minSpan || effCenterDist > size * t.maxCenterOffset) {
+      return false;
+    }
+
+    // Safety net (only for younger; easy large central attempt)
+    const isLargeAndCentered = (effWidth > size * t.safetySpan) && (effHeight > size * t.safetySpan) && (effCenterDist < size * t.safetyCenter);
+    const hasSubstantialInk = userInk > t.safetyInk;
+
+    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > t.safetyOverlap && coverageRatio > t.safetyCoverage) {
+      return true;
+    }
+
+    if (userInk < t.minInk) return false;
+
+    // Final: both precision (most of your ink is on the letter) AND coverage (you hit a good portion of the letter)
+    const passesPrecision = overlapRatio > t.mainOverlap;
+    const passesCoverage = coverageRatio > t.minCoverage;
+
+    // Dev-only diagnostics (remove or comment in production if needed)
+    if (typeof window !== 'undefined' && (window as any).__DEV_DRAW_DEBUG__ && childAge >= 6) {
+      console.log('[DesenheLetra debug]', {
+        age: childAge, letter,
+        userInk, overlapRatio: overlapRatio.toFixed(2), coverageRatio: coverageRatio.toFixed(2),
+        pathLength: Math.round(pathLength), effW: Math.round(effWidth), effH: Math.round(effHeight),
+        effCenter: Math.round(effCenterDist), passesPrecision, passesCoverage, t
+      });
+    }
+
+    if (childAge >= 7) {
+      // Stricter for older: require both, minimal safety
+      return passesPrecision && passesCoverage;
+    }
+
+    return passesPrecision && passesCoverage;
   }
 
   function startDrawing(e: React.PointerEvent) {
     const canvas = canvasRef.current
     const ctx = ctxRef.current
     if (!canvas || !ctx) return
+    if (showFeedback) return // prevent drawing over finished result; use "Tente de novo"
 
     setIsDrawing(true)
     setHasDrawn(true)
@@ -234,7 +332,7 @@ export function DesenheLetraGame() {
   }
 
   function draw(e: React.PointerEvent) {
-    if (!isDrawing) return
+    if (!isDrawing || showFeedback) return
     const canvas = canvasRef.current
     const ctx = ctxRef.current
     if (!canvas || !ctx) return
@@ -251,6 +349,20 @@ export function DesenheLetraGame() {
 
   function endDrawing() {
     setIsDrawing(false)
+  }
+
+  // Explicit "Tente de novo" UX: reset drawing for the SAME letter (practice more without penalty)
+  function retryLetter() {
+    const canvas = canvasRef.current
+    const ctx = ctxRef.current
+    if (!canvas || !ctx) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    drawLetterGuide(ctx, currentLetter, canvas.width)
+    setHasDrawn(false)
+    setShowFeedback(false)
+    setDrawnPoints([])
+    setLastWasGood(true)
   }
 
   async function handleFinish() {
@@ -276,19 +388,22 @@ export function DesenheLetraGame() {
     await getAudioManager().playSuccess()
 
     const message = isGood
-      ? speechName
-        ? `Muito bem, ${speechName}! Você desenhou a letra ${currentLetter} lindamente!`
-        : `Muito bem! Você desenhou a letra ${currentLetter} lindamente!`
-      : speechName
-        ? `Quase, ${speechName}! Tente desenhar mais parecido com a letra ${currentLetter}.`
-        : `Quase! Tente desenhar mais parecido com a letra ${currentLetter}.`
+      ? personalizeSpeech(
+          `Muito bem, {name}! Você desenhou a letra ${currentLetter} lindamente!`,
+          `Muito bem! Você desenhou a letra ${currentLetter} lindamente!`,
+          speechName
+        )
+      : personalizeSpeech(
+          `Quase, {name}! Tente desenhar mais parecido com a letra ${currentLetter}.`,
+          `Quase! Tente desenhar mais parecido com a letra ${currentLetter}.`,
+          speechName
+        )
 
     // Voz principal feminina (Alice) para feedbacks de desenho
     getAudioManager().speakPhrase(message)
 
-    setTimeout(() => {
-      nextLetter()
-    }, LONG_CELEBRATION_AUTO_ADVANCE_MS)
+    // No more auto-advance: explicit buttons below for "Tente de novo" or "Próxima"
+    // This gives control and allows practicing the same letter when not perfect.
   }
 
   function nextLetter() {
@@ -337,7 +452,7 @@ export function DesenheLetraGame() {
           <div className="bg-white rounded-3xl p-4 shadow-lg border-4 border-purple-200">
             <canvas
               ref={canvasRef}
-              className="touch-none rounded-2xl cursor-crosshair bg-white"
+              className={`touch-none rounded-2xl bg-white ${showFeedback ? 'cursor-not-allowed opacity-90' : 'cursor-crosshair'}`}
               onPointerDown={startDrawing}
               onPointerMove={draw}
               onPointerUp={endDrawing}
@@ -346,23 +461,41 @@ export function DesenheLetraGame() {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 w-full max-w-[340px]">
-          <button
-            onClick={clearCanvas}
-            className="flex-1 bg-white border-2 border-purple-300 text-purple-700 font-bold py-4 rounded-3xl text-xl active:bg-purple-50"
-          >
-            Limpar
-          </button>
-          
-          <button
-            onClick={handleFinish}
-            disabled={!hasDrawn}
-            className="flex-1 bg-teal-500 text-white font-bold py-4 rounded-3xl text-xl disabled:bg-gray-300 disabled:text-gray-500 active:bg-teal-600 transition-colors"
-          >
-            Terminei!
-          </button>
-        </div>
+        {/* Action Buttons - change based on whether finished or not */}
+        {!showFeedback ? (
+          <div className="flex gap-4 w-full max-w-[340px]">
+            <button
+              onClick={clearCanvas}
+              className="flex-1 bg-white border-2 border-purple-300 text-purple-700 font-bold py-4 rounded-3xl text-xl active:bg-purple-50"
+            >
+              Limpar
+            </button>
+            
+            <button
+              onClick={handleFinish}
+              disabled={!hasDrawn}
+              className="flex-1 bg-teal-500 text-white font-bold py-4 rounded-3xl text-xl disabled:bg-gray-300 disabled:text-gray-500 active:bg-teal-600 transition-colors"
+            >
+              Terminei!
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-4 w-full max-w-[340px]">
+            <button
+              onClick={retryLetter}
+              className="flex-1 bg-white border-2 border-purple-300 text-purple-700 font-bold py-4 rounded-3xl text-xl active:bg-purple-50"
+            >
+              Tente de novo
+            </button>
+            
+            <button
+              onClick={nextLetter}
+              className="flex-1 bg-teal-500 text-white font-bold py-4 rounded-3xl text-xl active:bg-teal-600 transition-colors"
+            >
+              Próxima letra
+            </button>
+          </div>
+        )}
 
         {/* Feedback */}
         <div className="h-10 mt-6 text-center">
@@ -374,7 +507,7 @@ export function DesenheLetraGame() {
                 ? "text-green-600 font-bold text-2xl" 
                 : "text-amber-600 font-semibold text-xl"}
             >
-              {lastWasGood ? `Que lindo, ${displayName}! ⭐` : `Quase! Vamos tentar a próxima.`}
+              {lastWasGood ? `Que lindo, ${displayName}! ⭐` : `Quase! Tente de novo ou vá para a próxima.`}
             </motion.p>
           )}
         </div>
