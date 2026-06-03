@@ -14,7 +14,7 @@ import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
 import { ReportsScreen } from './ReportsScreen'
 import { Alfafa } from './mascot/Alfafa'
-import { useChildProfile, useCurrentProfile, getChildVocative, getChildDisplayName } from '../stores/useChildProfile'
+import { useChildProfile, useCurrentProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../stores/useChildProfile'
 import type { ChildProfile } from '../types'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
@@ -287,14 +287,13 @@ export function Home() {
       <div className="px-6 pt-6 pb-2 flex items-start gap-4">
         <div 
           onClick={() => {
-            let greeting = speechName 
-              ? `Olá ${speechName}! Eu sou o Alfafa. Vamos brincar hoje?`
+            const base = hasWeakLetters 
+              ? `Olá {name}! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
+              : `Olá {name}! Eu sou o Alfafa. Vamos brincar hoje?`
+            const noNameBase = hasWeakLetters 
+              ? `Olá! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
               : `Olá! Eu sou o Alfafa. Vamos brincar hoje?`
-            if (hasWeakLetters) {
-              greeting = speechName 
-                ? `Olá ${speechName}! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
-                : `Olá! Hoje vamos treinar a letra ${weakLetters[0]}! Vamos brincar?`
-            }
+            const greeting = personalizeSpeech(base, noNameBase, speechName)
             getAudioManager().speakAsAlfafa(greeting)
           }}
           className="cursor-pointer active:scale-95 transition-transform"
