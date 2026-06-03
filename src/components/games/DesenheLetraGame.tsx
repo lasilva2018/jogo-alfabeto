@@ -165,7 +165,8 @@ export function DesenheLetraGame() {
           mainOverlap: 0.18, minCoverage: 0.10,
           safetySpan: 0.32, safetyCenter: 0.23, safetyInk: 480, safetyOverlap: 0.12, safetyCoverage: 0.08,
           useFillMask: true, maskLineWidth: 22,
-          minPath: 220
+          minPath: 220,
+          maxRelativeSize: 3.0
         };
       } else if (age === 6) {
         return {
@@ -173,7 +174,8 @@ export function DesenheLetraGame() {
           mainOverlap: 0.26, minCoverage: 0.16,
           safetySpan: 0.34, safetyCenter: 0.15, safetyInk: 780, safetyOverlap: 0.18, safetyCoverage: 0.11,
           useFillMask: true, maskLineWidth: 18,
-          minPath: 380
+          minPath: 380,
+          maxRelativeSize: 2.5
         };
       } else if (age === 7) {
         return {
@@ -181,7 +183,8 @@ export function DesenheLetraGame() {
           mainOverlap: 0.34, minCoverage: 0.24,
           safetySpan: 0.38, safetyCenter: 0.10, safetyInk: 1100, safetyOverlap: 0.24, safetyCoverage: 0.16,
           useFillMask: false, maskLineWidth: 14,
-          minPath: 520
+          minPath: 520,
+          maxRelativeSize: 2.0
         };
       } else {
         // 8+ : expect more control (per child development advice). Finger on tablet is imprecise,
@@ -191,7 +194,8 @@ export function DesenheLetraGame() {
           mainOverlap: 0.45, minCoverage: 0.35,
           safetySpan: 0.45, safetyCenter: 0.07, safetyInk: 1600, safetyOverlap: 0.30, safetyCoverage: 0.22,
           useFillMask: false, maskLineWidth: 11,
-          minPath: 750
+          minPath: 750,
+          maxRelativeSize: 1.6
         };
       }
     }
@@ -302,7 +306,7 @@ export function DesenheLetraGame() {
     // For 6+, require the user's drawing to be roughly the same *size* as the guide letter (not 3-5x larger)
     // and centered on it. This directly kills cases like huge V "covering" a tiny D.
     if (childAge >= 6) {
-      if (effWidth > maskW * 2.8 || effHeight > maskH * 2.8) {
+      if (effWidth > maskW * t.maxRelativeSize || effHeight > maskH * t.maxRelativeSize) {
         return false; // oversized scribble over the small guide
       }
       if (effWidth < maskW * 0.35 || effHeight < maskH * 0.35) {
