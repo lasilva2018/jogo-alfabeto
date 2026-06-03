@@ -238,7 +238,7 @@ export function Onboarding() {
           </motion.div>
         )}
 
-        {/* Step: Age - para ajustar exigência no jogo Desenhe a Letra */}
+        {/* Step: Age - ajuda a ajustar a dificuldade dos jogos conforme a criança */}
         {step === 'age' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

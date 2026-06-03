@@ -2,7 +2,6 @@ import { TouchLetterGame } from './games/TouchLetterGame'
 import { QualComecoGame } from './games/QualComecoGame'
 import { CacaLetraGame } from './games/CacaLetraGame'
 import { CompletePalavraGame } from './games/CompletePalavraGame'
-import { DesenheLetraGame } from './games/DesenheLetraGame'
 import { QualNaoPertenceGame } from './games/QualNaoPertenceGame'
 import { MemoriaGame } from './games/MemoriaGame'
 import { MontePalavraGame } from './games/MontePalavraGame'
@@ -19,7 +18,7 @@ import type { ChildProfile } from '../types'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
-type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'desenhe-letra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'reports' | 'settings' | 'premium'
+type Screen = 'home' | 'touch-letter' | 'qual-comeco' | 'caca-letra' | 'complete-palavra' | 'qual-nao-pertence' | 'memoria' | 'monte-palavra' | 'escute-e-encontre' | 'caca-palavras' | 'rewards' | 'minhas-letras' | 'reports' | 'settings' | 'premium'
 
 export function Home() {
   const profile = useCurrentProfile()
@@ -88,23 +87,6 @@ export function Home() {
           <div className="flex-1" />
         </div>
         <TouchLetterGame />
-      </div>
-    )
-  }
-
-  if (currentScreen === 'desenhe-letra') {
-    return (
-      <div>
-        <div className="bg-white/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b">
-          <button 
-            onClick={() => setCurrentScreen('home')}
-            className="text-purple-600 font-medium flex items-center gap-1 text-lg active:opacity-70"
-          >
-            ← Voltar
-          </button>
-          <div className="flex-1" />
-        </div>
-        <DesenheLetraGame />
       </div>
     )
   }
@@ -364,7 +346,7 @@ export function Home() {
                 </div>
 
                 <div>
-                  <div className="text-sm text-gray-600 mb-1 text-left">Idade (opcional, ajuda no jogo Desenhe a Letra)</div>
+                  <div className="text-sm text-gray-600 mb-1 text-left">Idade (opcional, ajuda a ajustar a dificuldade dos jogos)</div>
                   <div className="flex gap-2 flex-wrap mb-2">
                     {[3,4,5,6,7,8].map(a => (
                       <button
@@ -429,19 +411,17 @@ export function Home() {
           </div>
         </button>
 
-        {/* Game 2 - Desenhe a Letra (formação motora) */}
-        <button
-          onClick={() => setCurrentScreen('desenhe-letra')}
-          className="bg-white rounded-3xl p-6 shadow-lg border-2 border-indigo-200 active:scale-[0.985] transition-transform text-left"
-        >
+        {/* Game 2 - Desenhe a Letra (formação motora) — removido por enquanto */}
+        <div className="bg-white/70 rounded-3xl p-6 shadow-lg border-2 border-gray-200 text-left opacity-80">
           <div className="flex items-center gap-5">
             <div className="text-7xl">🖍️</div>
             <div className="flex-1">
-              <div className="text-3xl font-bold text-indigo-600">Desenhe a Letra</div>
-              <div className="text-lg text-gray-600 mt-1">Desenhe com o dedo!</div>
+              <div className="text-3xl font-bold text-gray-500">Desenhe a Letra</div>
+              <div className="text-lg text-gray-400 mt-1">Desenhe com o dedo!</div>
+              <div className="inline-block mt-2 text-xs px-3 py-0.5 bg-gray-200 text-gray-500 rounded-full font-semibold tracking-wide">EM BREVE</div>
             </div>
           </div>
-        </button>
+        </div>
 
         {/* Game 3 - Qual o Começo? (consciência fonológica) */}
         <button
