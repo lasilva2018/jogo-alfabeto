@@ -64,19 +64,36 @@ export function QualComecoGame() {
     }))
 
     if (isCorrect) {
-      setScore(s => ({ ...s, correct: s.correct + 1 }))
+      // Se showCorrect já estava true, significa que o erro anterior revelou a resposta
+      // e agora a criança está clicando na correta "depois de ver".
+      // Nesse caso NÃO contabilizamos como acerto novo (evita +1 correto +1 erro no mesmo desafio).
+      // Apenas reforçamos o aprendizado e avançamos. Sem estrela extra.
+      const isRemedial = game.showCorrect
 
-      // Dá uma estrelinha
-      useChildProfile.getState().addStars(1)
-      useChildProfile.getState().recordLetterPractice(game.letter, true)
+      if (!isRemedial) {
+        setScore(s => ({ ...s, correct: s.correct + 1 }))
+        useChildProfile.getState().addStars(1)
+        useChildProfile.getState().recordLetterPractice(game.letter, true)
+      } else {
+        // Ainda registra o acerto na mastery da letra (para o relatório), 
+        // mas sem inflar o placar de acertos nem dar estrela por esta rodada.
+        useChildProfile.getState().recordLetterPractice(game.letter, true)
+      }
 
       await getAudioManager().playSuccess()
 
-      const speakText = personalizeSpeech(
-        `Isso, {name}! ${game.example.word} começa com ${game.letter}! Muito bem!`,
-        `Isso! ${game.example.word} começa com ${game.letter}! Muito bem!`,
-        speechName
-      )
+      const speakText = isRemedial
+        ? personalizeSpeech(
+            `Isso! ${game.example.word} começa com ${game.letter}!`,
+            `Isso! ${game.example.word} começa com ${game.letter}!`,
+            speechName
+          )
+        : personalizeSpeech(
+            `Isso, {name}! ${game.example.word} começa com ${game.letter}! Muito bem!`,
+            `Isso! ${game.example.word} começa com ${game.letter}! Muito bem!`,
+            speechName
+          )
+
       // Voz principal feminina (Alice)
       await getAudioManager().speakPhrase(speakText)
 
@@ -152,13 +169,16 @@ export function QualComecoGame() {
           {game.choices.map((letter, index) => {
             const isCorrectChoice = letter === game.letter
             const shouldHighlightCorrect = game.showCorrect && isCorrectChoice
+            // Depois de erro + reveal, só a letra correta fica clicável (para confirmar o aprendizado).
+            // Evita que a criança conte mais erros à toa ou fique clicando em distratores.
+            const isDisabled = game.isLocked || (game.showCorrect && !isCorrectChoice)
 
             return (
               <motion.button
                 key={`${letter}-${index}`}
                 whileTap={{ scale: 0.94 }}
                 onClick={() => handleChoice(letter)}
-                disabled={game.isLocked}
+                disabled={isDisabled}
                 className={`
                   choice-button text-7xl font-black aspect-square
                   ${shouldHighlightCorrect 
@@ -166,6 +186,7 @@ export function QualComecoGame() {
                     : 'bg-white text-purple-600 border-purple-200'
                   }
                   ${game.lastResult === 'wrong' && !shouldHighlightCorrect ? 'opacity-60' : ''}
+                  ${game.showCorrect && !isCorrectChoice ? 'opacity-40 cursor-not-allowed' : ''}
                   disabled:cursor-not-allowed
                 `}
               >
