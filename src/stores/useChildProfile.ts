@@ -2,17 +2,10 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase, isSupabaseEnabled, signInParentWithMagicLink, signOutParent, loadChildrenFromCloud, upsertChildToCloud, deleteChildFromCloud, pushAllLocalToCloud, syncOnLogin, onAuthStateChange, mapCloudChildToLocal } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import type { ChildProfile, ParentSettings } from '../types'
 
-export interface ChildProfile {
-  id: string
-  name: string
-  avatar: string
-  age?: number
-  gender?: 'masculino' | 'feminino'
-  createdAt: string
-  stars: number
-  letterMastery: Record<string, { correct: number; attempts: number }>
-}
+// Re-export for convenience (so existing imports from store continue working)
+export type { ChildProfile, ParentSettings } from '../types'
 
 /**
  * Retorna o nome para **vocalização** (TTS / fala do Alfafa):
@@ -46,13 +39,7 @@ export function getChildDisplayName(profile: ChildProfile | null | { name?: stri
   return profile.gender === 'feminino' ? 'amiguinha' : 'amiguinho'
 }
 
-export interface ParentSettings {
-  isPremium: boolean
-  premiumExpiresAt?: string
-  privacyAccepted: boolean
-  privacyAcceptedAt?: string
-  allowNameCollection: boolean
-}
+// ParentSettings is now imported/re-exported from ../types (single source of truth)
 
 interface ChildProfileState {
   profiles: ChildProfile[]
@@ -64,6 +51,7 @@ interface ChildProfileState {
   supabaseUser: User | null
   isSyncing: boolean
   isAuthenticated: boolean
+  lastSyncError: string | null   // para feedback amigável (Settings etc)
 
   // Computed
   profile: ChildProfile | null
@@ -87,6 +75,10 @@ interface ChildProfileState {
   signOut: () => Promise<void>
   syncNow: () => Promise<void>
   initializeSupabaseSync: () => void
+
+  // Error handling melhorado
+  setLastSyncError: (msg: string | null) => void
+  clearLastSyncError: () => void
 }
 
 export const useChildProfile = create<ChildProfileState>()(
@@ -105,6 +97,7 @@ export const useChildProfile = create<ChildProfileState>()(
       supabaseUser: null,
       isSyncing: false,
       isAuthenticated: false,
+      lastSyncError: null,
 
       // Helper computed
       get profile() {
@@ -132,7 +125,10 @@ export const useChildProfile = create<ChildProfileState>()(
 
         // Sync para nuvem (fire-and-forget)
         if (get().isAuthenticated) {
-          upsertChildToCloud(newProfile).catch(console.error)
+          upsertChildToCloud(newProfile).catch((e) => {
+            console.error('[Sync] createProfile', e)
+            get().setLastSyncError('Perfil criado localmente, mas falhou ao salvar na nuvem.')
+          })
         }
       },
 
@@ -153,7 +149,10 @@ export const useChildProfile = create<ChildProfileState>()(
 
         const current = get().profile
         if (get().isAuthenticated && current) {
-          upsertChildToCloud(current).catch(console.error)
+          upsertChildToCloud(current).catch((e) => {
+            console.error('[Sync] updateProfile', e)
+            get().setLastSyncError('Alteração salva localmente, mas falhou ao sincronizar.')
+          })
         }
       },
 
@@ -190,6 +189,7 @@ export const useChildProfile = create<ChildProfileState>()(
           },
           supabaseUser: null,
           isAuthenticated: false,
+          lastSyncError: null,
         })
       },
 
@@ -227,7 +227,10 @@ export const useChildProfile = create<ChildProfileState>()(
 
         const p = get().profile
         if (get().isAuthenticated && p) {
-          upsertChildToCloud(p).catch(console.error)
+          upsertChildToCloud(p).catch((e) => {
+            console.error('[Sync] addStars', e)
+            get().setLastSyncError('Estrelinha salva localmente, sincronização pendente.')
+          })
         }
       },
 
@@ -254,7 +257,10 @@ export const useChildProfile = create<ChildProfileState>()(
 
         const p = get().profile
         if (get().isAuthenticated && p) {
-          upsertChildToCloud(p).catch(console.error)
+          upsertChildToCloud(p).catch((e) => {
+            console.error('[Sync] recordLetterPractice', e)
+            get().setLastSyncError('Progresso salvo localmente, sincronização pendente.')
+          })
         }
       },
 
@@ -291,7 +297,7 @@ export const useChildProfile = create<ChildProfileState>()(
         const state = get()
         if (!state.isAuthenticated || !isSupabaseEnabled) return
 
-        set({ isSyncing: true })
+        set({ isSyncing: true, lastSyncError: null })
         try {
           // Push local atual
           await pushAllLocalToCloud(state.profiles)
@@ -306,6 +312,10 @@ export const useChildProfile = create<ChildProfileState>()(
               currentProfileId: stillExists ? state.currentProfileId : (mapped[0]?.id ?? null),
             })
           }
+        } catch (e: any) {
+          const msg = e?.message || 'Erro desconhecido'
+          console.error('[Supabase] Erro no syncNow', e)
+          set({ lastSyncError: `Não foi possível sincronizar agora: ${msg}` })
         } finally {
           set({ isSyncing: false })
         }
@@ -330,7 +340,7 @@ export const useChildProfile = create<ChildProfileState>()(
 
           if (user && !wasAuthenticated) {
             // Novo login → faz merge inteligente (sobe local ou baixa da nuvem)
-            set({ isSyncing: true })
+            set({ isSyncing: true, lastSyncError: null })
             try {
               const local = get().profiles
               const { profiles: merged, usedCloud } = await syncOnLogin(local)
@@ -343,6 +353,10 @@ export const useChildProfile = create<ChildProfileState>()(
               // Se merged.length === 0, mantemos hasCompleted true (por causa da auth)
               // e o Home vai mostrar a opção de criar o primeiro perfil.
               console.log('[Supabase] Sync no login concluído. Usou nuvem?', usedCloud)
+            } catch (e: any) {
+              const msg = e?.message || 'Erro desconhecido no sync'
+              console.error('[Supabase] Erro no sync do login', e)
+              set({ lastSyncError: `Falha ao sincronizar: ${msg}` })
             } finally {
               set({ isSyncing: false })
             }
@@ -359,11 +373,14 @@ export const useChildProfile = create<ChildProfileState>()(
             set({ supabaseUser: session.user, isAuthenticated: true, hasCompletedOnboarding: true })
             // O onAuthStateChange acima também vai disparar, mas fazemos um sync inicial
             setTimeout(() => {
-              get().syncNow().catch(console.error)
+              get().syncNow().catch((e) => get().setLastSyncError(e?.message || 'Erro no sync inicial'))
             }, 800)
           }
         })
       },
+
+      setLastSyncError: (msg) => set({ lastSyncError: msg }),
+      clearLastSyncError: () => set({ lastSyncError: null }),
     }),
     {
       name: 'alfafa-child-profile',

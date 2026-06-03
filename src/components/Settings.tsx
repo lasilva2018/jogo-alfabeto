@@ -22,6 +22,8 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
     signOut,
     syncNow,
     createProfile,
+    lastSyncError,
+    clearLastSyncError,
   } = useChildProfile()
 
   const [showPrivacy, setShowPrivacy] = useState(false)
@@ -380,13 +382,24 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
                 ✓ Conectado como <span className="font-medium">{supabaseUser.email}</span>
               </div>
 
+              {lastSyncError && (
+                <div className="text-sm bg-red-50 text-red-700 px-3 py-2 rounded-2xl flex items-start justify-between gap-2">
+                  <span>⚠️ {lastSyncError}</span>
+                  <button onClick={clearLastSyncError} className="text-red-600 underline text-xs">ok</button>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   onClick={async () => {
                     setAuthMessage('')
                     await syncNow()
-                    setAuthMessage('Sincronizado com sucesso!')
-                    setTimeout(() => setAuthMessage(''), 2000)
+                    // Só mostra sucesso se não houver erro de sync
+                    const err = useChildProfile.getState().lastSyncError
+                    if (!err) {
+                      setAuthMessage('Sincronizado com sucesso!')
+                      setTimeout(() => setAuthMessage(''), 2000)
+                    }
                   }}
                   disabled={isSyncing}
                   className="flex-1 py-3 rounded-2xl bg-purple-600 text-white font-medium active:bg-purple-700 disabled:opacity-60"

@@ -14,6 +14,7 @@ import { Settings } from './Settings'
 import { PremiumScreen } from './PremiumScreen'
 import { Alfafa } from './mascot/Alfafa'
 import { useChildProfile, useCurrentProfile, getChildVocative, getChildDisplayName } from '../stores/useChildProfile'
+import type { ChildProfile } from '../types'
 import { getAudioManager } from '../lib/audio/AudioManager'
 import { useState } from 'react'
 
@@ -56,11 +57,11 @@ export function Home() {
   }
 
   // Recomendação inteligente baseada no mastery real da criança
-  const getWeakLetters = (prof: any) => {
+  const getWeakLetters = (prof: ChildProfile | null) => {
     if (!prof?.letterMastery) return []
     const mastery = prof.letterMastery
     return Object.entries(mastery)
-      .map(([letter, data]: [string, any]) => {
+      .map(([letter, data]) => {
         const acc = data.attempts > 0 ? Math.round((data.correct / data.attempts) * 100) : 0
         return { letter, attempts: data.attempts, accuracy: acc }
       })

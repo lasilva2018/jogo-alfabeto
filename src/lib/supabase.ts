@@ -59,20 +59,12 @@ export const getSiteUrl = (): string => {
 };
 
 // ============================================
-// Tipos
+// Tipos (centralizados em ../types para evitar duplicação)
 // ============================================
-export interface CloudChild {
-  id: string
-  parent_id: string
-  name: string
-  avatar: string
-  age?: number
-  gender?: 'masculino' | 'feminino'
-  stars: number
-  letter_mastery: Record<string, { correct: number; attempts: number }>
-  created_at: string
-  updated_at: string
-}
+import type { CloudChild, LetterMasteryEntry } from '../types'
+
+// Re-export for backward compat in other files that import from here
+export type { CloudChild } from '../types'
 
 /**
  * Mapeia um registro da nuvem (CloudChild) para o formato local do Zustand (ChildProfile).
@@ -86,7 +78,7 @@ export function mapCloudChildToLocal(c: CloudChild) {
     age: c.age,
     gender: c.gender,
     stars: c.stars,
-    letterMastery: c.letter_mastery || {},
+    letterMastery: (c.letter_mastery || {}) as Record<string, LetterMasteryEntry>,
     createdAt: c.created_at,
   }
 }
@@ -165,7 +157,7 @@ export async function upsertChildToCloud(profile: {
   age?: number
   gender?: 'masculino' | 'feminino'
   stars: number
-  letterMastery: Record<string, { correct: number; attempts: number }>
+  letterMastery: Record<string, LetterMasteryEntry>
 }): Promise<{ success: boolean; cloudId?: string }> {
   if (!supabase) return { success: false }
 
