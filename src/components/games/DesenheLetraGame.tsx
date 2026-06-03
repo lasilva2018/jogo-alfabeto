@@ -69,7 +69,9 @@ export function DesenheLetraGame() {
 
   function drawLetterGuide(ctx: CanvasRenderingContext2D, letter: string, size: number) {
     ctx.save()
-    ctx.font = `bold ${size * 0.72}px system-ui, sans-serif`
+    // Larger guide letter so kids have a bigger target to trace (reduces "huge scribble over tiny guide" problem)
+    const letterScale = 0.82
+    ctx.font = `bold ${size * letterScale}px system-ui, sans-serif`
     ctx.fillStyle = '#e0d4ff' // very faint fill for background guidance
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -208,7 +210,9 @@ export function DesenheLetraGame() {
 
     maskCtx.fillStyle = 'black';
     maskCtx.strokeStyle = 'black';
-    maskCtx.font = `bold ${size * 0.72}px system-ui, sans-serif`;
+    // Must match exactly the visual guide scale in drawLetterGuide
+    const letterScale = 0.82;
+    maskCtx.font = `bold ${size * letterScale}px system-ui, sans-serif`;
     maskCtx.textAlign = 'center';
     maskCtx.textBaseline = 'middle';
     maskCtx.lineWidth = t.maskLineWidth;
