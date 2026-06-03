@@ -85,8 +85,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Toque a Letra</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <TouchLetterGame />
       </div>
@@ -103,8 +102,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Desenhe a Letra</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <DesenheLetraGame />
       </div>
@@ -121,8 +119,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Qual o Começo?</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <QualComecoGame />
       </div>
@@ -139,8 +136,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Escute e Encontre</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <EscuteEEncontreGame />
       </div>
@@ -157,8 +153,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Complete a Palavra</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <CompletePalavraGame />
       </div>
@@ -175,8 +170,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Qual Não Pertence?</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <QualNaoPertenceGame />
       </div>
@@ -193,8 +187,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Monte a Palavra</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <MontePalavraGame />
       </div>
@@ -211,8 +204,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Jogo da Memória</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <MemoriaGame />
       </div>
@@ -229,8 +221,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Caça à Letra</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <CacaLetraGame />
       </div>
@@ -247,8 +238,7 @@ export function Home() {
           >
             ← Voltar
           </button>
-          <div className="text-sm text-gray-500">Caça às Palavras</div>
-          <div className="w-8" />
+          <div className="flex-1" />
         </div>
         <CacaPalavrasGame />
       </div>
