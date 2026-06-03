@@ -347,7 +347,7 @@ export function Settings({ onBack, onOpenPremium }: { onBack: () => void; onOpen
             {parentSettings.isPremium ? (
               <>✓ Você tem acesso completo (Premium)</>
             ) : (
-              <>Todos os 10 joguinhos estão liberados. Desbloqueie relatórios para pais + novidades com Premium.</>
+              <>Todos os 10 joguinhos estão liberados. Relatórios para pais já disponíveis + novidades com Premium.</>
             )}
           </div>
 

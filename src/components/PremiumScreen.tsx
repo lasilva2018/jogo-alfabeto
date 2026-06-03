@@ -25,7 +25,7 @@ export function PremiumScreen({ onBack, onUnlockSuccess }: PremiumScreenProps) {
   const benefits = [
     { icon: '🔓', title: 'Todos os 10 joguinhos já liberados', desc: 'Monte a Palavra, Qual Não Pertence, Caça às Palavras + futuros jogos' },
     { icon: '🎙️', title: 'Voz ElevenLabs de qualidade para todos', desc: 'Alfafa (voz masculina) e Alice em todas as falas — já disponível no grátis' },
-    { icon: '📊', title: 'Relatórios para os pais (em breve)', desc: 'Acompanhe o progresso real por letra e tempo de uso' },
+    { icon: '📊', title: 'Relatórios para os pais', desc: 'Acompanhe o progresso real por letra (já disponível na tela inicial)' },
     { icon: '✨', title: 'Novos jogos e atualizações primeiro', desc: 'Acesso antecipado a novos mini-jogos e melhorias' },
     { icon: '🚫', title: 'Sem anúncios, sem distrações', desc: 'Experiência 100% focada na criança' },
     { icon: '❤️', title: 'Suporte prioritário', desc: 'Dúvidas respondidas diretamente pelos criadores' },
@@ -103,7 +103,7 @@ export function PremiumScreen({ onBack, onUnlockSuccess }: PremiumScreenProps) {
             <div className="font-medium mb-2 text-white">Premium</div>
             <ul className="space-y-1 text-white text-xs">
               <li>Todos os jogos + prioridade em novos</li>
-              <li>Relatórios para pais (em breve)</li>
+              <li>Relatórios para pais (já disponível)</li>
               <li>Suporte prioritário + atualizações primeiro</li>
             </ul>
           </div>
