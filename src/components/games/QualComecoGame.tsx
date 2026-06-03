@@ -8,7 +8,7 @@ import {
   WordExample,
   Letter
 } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -72,9 +72,11 @@ export function QualComecoGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = speechName
-        ? `Isso, ${speechName}! ${game.example.word} começa com ${game.letter}! Muito bem!`
-        : `Isso! ${game.example.word} começa com ${game.letter}! Muito bem!`
+      const speakText = personalizeSpeech(
+        `Isso, {name}! ${game.example.word} começa com ${game.letter}! Muito bem!`,
+        `Isso! ${game.example.word} começa com ${game.letter}! Muito bem!`,
+        speechName
+      )
       // Voz principal feminina (Alice)
       await getAudioManager().speakPhrase(speakText)
 
@@ -88,9 +90,11 @@ export function QualComecoGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = speechName
-          ? `${game.example.word} começa com a letra ${game.letter}, ${speechName}!`
-          : `${game.example.word} começa com a letra ${game.letter}!`
+        const speakText = personalizeSpeech(
+          `${game.example.word} começa com a letra ${game.letter}, {name}!`,
+          `${game.example.word} começa com a letra ${game.letter}!`,
+          speechName
+        )
         // Voz principal feminina
         await getAudioManager().speakPhrase(speakText)
 

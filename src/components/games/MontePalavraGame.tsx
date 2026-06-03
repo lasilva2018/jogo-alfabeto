@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -109,9 +109,11 @@ export function MontePalavraGame() {
         await getAudioManager().playSuccess()
 
         const fullWord = game.target.word
-        const speakText = speechName
-          ? `Perfeito, ${speechName}! Você montou ${fullWord} certinho! Que legal!`
-          : `Perfeito! Você montou ${fullWord} certinho! Que legal!`
+        const speakText = personalizeSpeech(
+          `Perfeito, {name}! Você montou ${fullWord} certinho! Que legal!`,
+          `Perfeito! Você montou ${fullWord} certinho! Que legal!`,
+          speechName
+        )
         // Voz principal feminina - aguardamos terminar antes de avançar
         await getAudioManager().speakPhrase(speakText)
 
@@ -148,9 +150,11 @@ export function MontePalavraGame() {
   }
 
   const handleSpeakHint = () => {
-    const message = speechName
-      ? `Monte a palavra ${game.target.word} tocando as letras na ordem certa, ${speechName}!`
-      : `Monte a palavra ${game.target.word} tocando as letras na ordem certa!`
+    const message = personalizeSpeech(
+      `Monte a palavra ${game.target.word} tocando as letras na ordem certa, {name}!`,
+      `Monte a palavra ${game.target.word} tocando as letras na ordem certa!`,
+      speechName
+    )
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }

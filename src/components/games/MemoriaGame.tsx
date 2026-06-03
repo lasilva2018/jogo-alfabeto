@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { LONG_CELEBRATION_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS, getRandomExample, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -120,9 +120,11 @@ export function MemoriaGame() {
 
         await getAudioManager().playSuccess()
 
-        const speakText = speechName
-          ? `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem, ${speechName}!`
-          : `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem!`
+        const speakText = personalizeSpeech(
+          `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem, {name}!`,
+          `Par encontrado! ${firstCard.letter} de ${secondCard.isWord ? secondCard.display : firstCard.display}. Muito bem!`,
+          speechName
+        )
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -161,9 +163,11 @@ export function MemoriaGame() {
   const handleSpeakHint = () => {
     if (game.isChecking) return
 
-    const message = speechName
-      ? `Vire as cartas e encontre os pares, ${speechName}!`
-      : `Vire as cartas e encontre os pares!`
+    const message = personalizeSpeech(
+      `Vire as cartas e encontre os pares, {name}!`,
+      `Vire as cartas e encontre os pares!`,
+      speechName
+    )
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -126,9 +126,11 @@ export function CacaPalavrasGame() {
         useChildProfile.getState().addStars(2) // 2 stars: caça com múltiplos alvos é mais desafiadora
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
-        const speakText = speechName
-          ? `Isso, ${speechName}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
-          : `Isso! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`
+        const speakText = personalizeSpeech(
+          `Isso, {name}! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`,
+          `Isso! Você encontrou todas as palavras com ${game.targetLetter}! Que caçador incrível!`,
+          speechName
+        )
         // Voz principal feminina - aguardamos para evitar sobreposição de áudio
         await getAudioManager().speakPhrase(speakText)
 
@@ -153,9 +155,11 @@ export function CacaPalavrasGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    const message = speechName
-      ? `Encontre todas as palavras que começam com a letra ${game.targetLetter}, ${speechName}!`
-      : `Encontre todas as palavras que começam com a letra ${game.targetLetter}!`
+    const message = personalizeSpeech(
+      `Encontre todas as palavras que começam com a letra ${game.targetLetter}, {name}!`,
+      `Encontre todas as palavras que começam com a letra ${game.targetLetter}!`,
+      speechName
+    )
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }

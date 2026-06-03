@@ -179,23 +179,25 @@ export function DesenheLetraGame() {
         };
       } else if (age === 7) {
         return {
-          minSpan: 0.33, maxCenterOffset: 0.13, tolerance: 9, minInk: 920,
-          mainOverlap: 0.34, minCoverage: 0.24,
+          minSpan: 0.33, maxCenterOffset: 0.13, tolerance: 6, minInk: 920,
+          mainOverlap: 0.38, minCoverage: 0.27,
           safetySpan: 0.38, safetyCenter: 0.10, safetyInk: 1100, safetyOverlap: 0.24, safetyCoverage: 0.16,
-          useFillMask: false, maskLineWidth: 14,
-          minPath: 520,
-          maxRelativeSize: 2.0
+          useFillMask: false, maskLineWidth: 12,
+          minPath: 580,
+          maxRelativeSize: 1.8
         };
       } else {
         // 8+ : expect more control (per child development advice). Finger on tablet is imprecise,
-        // but a random huge V should not pass as D. Higher bars + the new mask-relative size/center checks.
+        // but a random huge V (or any wrong shape) must NOT pass as the target letter (J/D etc).
+        // Key defenses: correct mask scale (0.82), relative size vs REAL mask bbox, center vs mask center,
+        // NO safety net bypass, higher mainOverlap+coverage, narrower tolerance band, more path effort.
         return {
-          minSpan: 0.40, maxCenterOffset: 0.09, tolerance: 5, minInk: 1300,
-          mainOverlap: 0.45, minCoverage: 0.35,
-          safetySpan: 0.45, safetyCenter: 0.07, safetyInk: 1600, safetyOverlap: 0.30, safetyCoverage: 0.22,
-          useFillMask: false, maskLineWidth: 11,
-          minPath: 750,
-          maxRelativeSize: 1.6
+          minSpan: 0.40, maxCenterOffset: 0.09, tolerance: 3, minInk: 1300,
+          mainOverlap: 0.52, minCoverage: 0.38,
+          safetySpan: 0.45, safetyCenter: 0.07, safetyInk: 1600, safetyOverlap: 0.42, safetyCoverage: 0.30,
+          useFillMask: false, maskLineWidth: 9,
+          minPath: 880,
+          maxRelativeSize: 1.35
         };
       }
     }
@@ -214,7 +216,9 @@ export function DesenheLetraGame() {
 
     maskCtx.fillStyle = 'black';
     maskCtx.strokeStyle = 'black';
-    // Must match exactly the visual guide scale in drawLetterGuide
+    // MUST match EXACTLY the visual guide scale in drawLetterGuide (0.82) so that
+    // maskW/H and relative size/center checks are accurate against what the child actually sees.
+    // Mismatch was allowing giant scribbles (e.g. V enorme sobre guia pequeno de J/D) a passarem.
     const letterScale = 0.82;
     maskCtx.font = `bold ${size * letterScale}px system-ui, sans-serif`;
     maskCtx.textAlign = 'center';
@@ -226,8 +230,8 @@ export function DesenheLetraGame() {
       maskCtx.fillText(letter, size / 2, size / 2 + 10);
     }
 
-    for (let dx = -t.tolerance; dx <= t.tolerance; dx += 3) {
-      for (let dy = -t.tolerance; dy <= t.tolerance; dy += 3) {
+    for (let dx = -t.tolerance; dx <= t.tolerance; dx += 2) {
+      for (let dy = -t.tolerance; dy <= t.tolerance; dy += 2) {
         maskCtx.strokeText(letter, size / 2 + dx, size / 2 + 10 + dy);
         if (t.useFillMask) {
           maskCtx.fillText(letter, size / 2 + dx, size / 2 + 10 + dy);
@@ -306,15 +310,23 @@ export function DesenheLetraGame() {
     // For 6+, require the user's drawing to be roughly the same *size* as the guide letter (not 3-5x larger)
     // and centered on it. This directly kills cases like huge V "covering" a tiny D.
     if (childAge >= 6) {
+      const relW = effWidth / Math.max(1, maskW);
+      const relH = effHeight / Math.max(1, maskH);
+      const centerDiff = Math.hypot(effCx - maskCx, effCy - maskCy);
+      const maxCenterDiff = Math.max(maskW, maskH) * 0.40;
       if (effWidth > maskW * t.maxRelativeSize || effHeight > maskH * t.maxRelativeSize) {
+        if (childAge >= 6) {
+          console.log('[DesenheLetra REJECT oversized]', { age: childAge, letter, relW: relW.toFixed(2), relH: relH.toFixed(2), maxRel: t.maxRelativeSize, effW: Math.round(effWidth), maskW: Math.round(maskW) });
+        }
         return false; // oversized scribble over the small guide
       }
       if (effWidth < maskW * 0.35 || effHeight < maskH * 0.35) {
         return false;
       }
-      const centerDiff = Math.hypot(effCx - maskCx, effCy - maskCy);
-      const maxCenterDiff = Math.max(maskW, maskH) * 0.40;
       if (centerDiff > maxCenterDiff) {
+        if (childAge >= 6) {
+          console.log('[DesenheLetra REJECT off-center]', { age: childAge, letter, centerDiff: Math.round(centerDiff), maxCenterDiff: Math.round(maxCenterDiff), effCx: Math.round(effCx), maskCx: Math.round(maskCx) });
+        }
         return false; // drawing center too far from the actual letter guide center
       }
     }
@@ -324,11 +336,13 @@ export function DesenheLetraGame() {
       return false;
     }
 
-    // Safety net (only for younger; easy large central attempt)
+    // Safety net ONLY for younger kids (easy large central attempt that shows intent).
+    // For 7+ (and especially 8+) we do NOT want to reward a random large scribble even if centered.
+    // This was one cause of "V gigante sobre J pequeno" sendo aceito.
     const isLargeAndCentered = (effWidth > size * t.safetySpan) && (effHeight > size * t.safetySpan) && (effCenterDist < size * t.safetyCenter);
     const hasSubstantialInk = userInk > t.safetyInk;
 
-    if (isLargeAndCentered && hasSubstantialInk && overlapRatio > t.safetyOverlap && coverageRatio > t.safetyCoverage) {
+    if (childAge <= 6 && isLargeAndCentered && hasSubstantialInk && overlapRatio > t.safetyOverlap && coverageRatio > t.safetyCoverage) {
       return true;
     }
 
@@ -338,14 +352,24 @@ export function DesenheLetraGame() {
     const passesPrecision = overlapRatio > t.mainOverlap;
     const passesCoverage = coverageRatio > t.minCoverage;
 
-    // Dev-only diagnostics (remove or comment in production if needed)
-    if (typeof window !== 'undefined' && (window as any).__DEV_DRAW_DEBUG__ && childAge >= 6) {
-      console.log('[DesenheLetra debug]', {
+    // Always log key metrics for 6+ during real kid tests (open console to see why accepted/rejected).
+    // Critical for tuning against actual drawings (e.g. giant wrong-shape scribbles).
+    // To force-disable: set window.__DISABLE_DRAW_DEBUG__ = true before drawing.
+    if (childAge >= 6 && !(typeof window !== 'undefined' && (window as any).__DISABLE_DRAW_DEBUG__)) {
+      const relW = (effWidth / Math.max(1, maskW)).toFixed(2);
+      const relH = (effHeight / Math.max(1, maskH)).toFixed(2);
+      const centerToMask = Math.hypot(effCx - maskCx, effCy - maskCy);
+      const finalDecision = (childAge >= 7) ? (passesPrecision && passesCoverage) : (passesPrecision && passesCoverage);
+      console.log('[DesenheLetra metrics 6+]', {
         age: childAge, letter,
         userInk, overlapRatio: overlapRatio.toFixed(2), coverageRatio: coverageRatio.toFixed(2),
-        pathLength: Math.round(pathLength), effW: Math.round(effWidth), effH: Math.round(effHeight),
-        effCenter: Math.round(effCenterDist), maskW: Math.round(maskW), maskH: Math.round(maskH),
-        passesPrecision, passesCoverage, t
+        pathLength: Math.round(pathLength),
+        effW: Math.round(effWidth), effH: Math.round(effHeight),
+        maskW: Math.round(maskW), maskH: Math.round(maskH),
+        relSize: `w${relW}/h${relH}`, centerToMask: Math.round(centerToMask),
+        passesPrecision, passesCoverage,
+        finalDecision, safetyWouldHave: (childAge <=6),
+        t: { mainOverlap: t.mainOverlap, minCoverage: t.minCoverage, maxRel: t.maxRelativeSize, minPath: t.minPath, tol: t.tolerance, lw: t.maskLineWidth }
       });
     }
 
@@ -431,7 +455,11 @@ export function DesenheLetraGame() {
       // No star / no count for insufficient effort
     }
 
-    await getAudioManager().playSuccess()
+    if (isGood) {
+      await getAudioManager().playSuccess()
+    } else {
+      await getAudioManager().playMistake()
+    }
 
     const message = isGood
       ? personalizeSpeech(

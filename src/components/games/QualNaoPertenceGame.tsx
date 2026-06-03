@@ -6,7 +6,7 @@ import {
   getOddOneOutRound, 
   OddOneOutRound 
 } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -60,9 +60,11 @@ export function QualNaoPertenceGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = speechName
-        ? `Isso mesmo, ${speechName}! Essa começa com outra letra. Muito esperto!`
-        : `Isso mesmo! Essa começa com outra letra. Muito esperto!`
+      const speakText = personalizeSpeech(
+        `Isso mesmo, {name}! Essa começa com outra letra. Muito esperto!`,
+        `Isso mesmo! Essa começa com outra letra. Muito esperto!`,
+        speechName
+      )
       // Voz principal feminina - aguardamos a fala para não emendar na próxima
       await getAudioManager().speakPhrase(speakText)
 
@@ -80,9 +82,11 @@ export function QualNaoPertenceGame() {
       const correctWord = oddOption.example.word
       const correctLetter = oddOption.letter
       
-      const speakText = speechName
-        ? `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, ${speechName}!`
-        : `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}!`
+      const speakText = personalizeSpeech(
+        `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}, {name}!`,
+        `Esse começa com ${tappedOption.letter}... O diferente é o ${correctWord}, que começa com ${correctLetter}!`,
+        speechName
+      )
       await getAudioManager().speakPhrase(speakText)
 
       // Só avança depois que a explicação terminar de ser falada
@@ -93,9 +97,11 @@ export function QualNaoPertenceGame() {
   const handleSpeakHint = () => {
     if (game.isLocked) return
     
-    const message = speechName
-      ? `Olha as três palavras, ${speechName}. Qual não pertence?`
-      : `Olha as três palavras. Qual não pertence?`
+    const message = personalizeSpeech(
+      `Olha as três palavras, {name}. Qual não pertence?`,
+      `Olha as três palavras. Qual não pertence?`,
+      speechName
+    )
     // Voz principal feminina
     getAudioManager().speakPhrase(message)
   }

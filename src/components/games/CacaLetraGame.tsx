@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 import { GameTopBar } from '../layout/GameTopBar'
 
@@ -95,9 +95,11 @@ export function CacaLetraGame() {
         useChildProfile.getState().addStars(1)
         useChildProfile.getState().recordLetterPractice(game.targetLetter, true)
 
-        const speakText = speechName
-          ? `Isso, ${speechName}! Você encontrou todas as ${game.targetLetter}! Muito bem!`
-          : `Isso! Você encontrou todas as ${game.targetLetter}! Muito bem!`
+        const speakText = personalizeSpeech(
+          `Isso, {name}! Você encontrou todas as ${game.targetLetter}! Muito bem!`,
+          `Isso! Você encontrou todas as ${game.targetLetter}! Muito bem!`,
+          speechName
+        )
         // Voz principal feminina
         await getAudioManager().speakPhrase(speakText)
 
@@ -121,9 +123,11 @@ export function CacaLetraGame() {
 
   const handleSpeakHint = () => {
     if (game.isLocked) return
-    const speakText = speechName
-      ? `Encontre todas as letras ${game.targetLetter}, ${speechName}!`
-      : `Encontre todas as letras ${game.targetLetter}!`
+    const speakText = personalizeSpeech(
+      `Encontre todas as letras ${game.targetLetter}, {name}!`,
+      `Encontre todas as letras ${game.targetLetter}!`,
+      speechName
+    )
     // Voz principal feminina
     getAudioManager().speakPhrase(speakText)
   }
