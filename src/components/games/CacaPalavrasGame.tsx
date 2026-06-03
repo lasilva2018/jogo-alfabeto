@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
+import { GameTopBar } from '../layout/GameTopBar'
 
 interface GridItem {
   emoji: string
@@ -77,7 +78,6 @@ function pickTargetLetter(): Letter {
 export function CacaPalavrasGame() {
   const { profile } = useChildProfile()
   const speechName = getChildVocative(profile)
-  const displayName = getChildDisplayName(profile)
 
   const [score, setScore] = useState({ correct: 0, mistakes: 0 })
   const [game, setGame] = useState<GameState>(() => createNewRound())
@@ -164,25 +164,7 @@ export function CacaPalavrasGame() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50 flex flex-col safe-area">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-white/70 backdrop-blur-lg border-b border-white/60">
-        <div className="flex items-center gap-3">
-          <div className="text-4xl">{profile?.avatar || '🐘'}</div>
-          <div>
-            <div className="text-sm font-medium text-purple-700">{displayName}</div>
-            <div className="text-[10px] text-gray-500 -mt-0.5">Caça às Palavras</div>
-          </div>
-        </div>
-
-        <div className="flex gap-4 text-sm font-semibold">
-          <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-2xl">
-            ✅ <span>{score.correct}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-red-100 text-red-600 px-3 py-1 rounded-2xl">
-            ❌ <span>{score.mistakes}</span>
-          </div>
-        </div>
-      </div>
+      <GameTopBar title="Caça às Palavras" score={{ correct: score.correct, mistakes: score.mistakes }} />
 
       <div className="flex-1 flex flex-col items-center px-5 pt-5 pb-8">
         

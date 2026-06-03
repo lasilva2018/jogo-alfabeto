@@ -1,5 +1,4 @@
-import { useChildProfile } from '../../stores/useChildProfile'
-import { getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildDisplayName } from '../../stores/useChildProfile'
 
 interface GameTopBarProps {
   title: string
