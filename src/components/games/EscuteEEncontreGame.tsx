@@ -70,6 +70,8 @@ export function EscuteEEncontreGame() {
 
   // Fala a palavra automaticamente no início da rodada (voz principal feminina)
   const speakTarget = useCallback(async (word: string) => {
+    // Cancela qualquer fala anterior (correção de erro, etc) para evitar corte ou sobreposição
+    getAudioManager().cancel()
     const text = `${word}!`
     await getAudioManager().speakPhrase(text)
   }, [])
@@ -125,20 +127,24 @@ export function EscuteEEncontreGame() {
 
       await getAudioManager().playMistake()
 
+      // Após o erro: destacamos a resposta correta na UI e explicamos com voz.
+      // IMPORTANTE: aguardamos a fala de correção terminar ANTES de avançar a rodada.
+      // Assim a voz não é cortada no meio quando a próxima rodada começa a falar a nova palavra.
       setTimeout(async () => {
         const speakText = personalizeSpeech(
           `Não foi essa... A palavra que eu falei foi ${game.target.word}, {name}!`,
           `Não foi essa... A palavra que eu falei foi ${game.target.word}!`,
           speechName
         )
-        // Voz principal feminina
-        getAudioManager().speakPhrase(speakText)
+        // Voz principal feminina - esperamos terminar para não interromper a explicação
+        await getAudioManager().speakPhrase(speakText)
 
-        // Mostra a correta por um tempo e avança
+        // Depois da explicação, damos um tempinho extra para a criança ver a correta
+        // e então avançamos (a nova rodada vai falar o novo alvo limpo)
         setTimeout(() => {
           nextRound()
-        }, SUCCESS_AUTO_ADVANCE_MS)
-      }, 600)
+        }, 400)
+      }, 650)
     }
   }
 
