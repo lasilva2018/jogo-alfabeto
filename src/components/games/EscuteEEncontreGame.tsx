@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { WORD_BANK, Letter } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface WordExample {
@@ -106,11 +106,13 @@ export function EscuteEEncontreGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = speechName
-        ? `Isso mesmo, ${speechName}! É ${game.target.word}! Muito bem!`
-        : `Isso mesmo! É ${game.target.word}! Muito bem!`
+      const speakText = personalizeSpeech(
+        `Isso mesmo, {name}! É ${game.target.word}! Muito bem!`,
+        `Isso mesmo! É ${game.target.word}! Muito bem!`,
+        speechName
+      )
       // Voz principal feminina - aguardamos a fala terminar antes de avançar
-      // para evitar que o áudio da próxima rodada emende com o parabenizando anterior
+      // para evitar que o áudio da próxima rodada enende com o parabenizando anterior
       await getAudioManager().speakPhrase(speakText)
 
       setTimeout(() => {
@@ -123,9 +125,11 @@ export function EscuteEEncontreGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = speechName
-          ? `Não foi essa... A palavra que eu falei foi ${game.target.word}, ${speechName}!`
-          : `Não foi essa... A palavra que eu falei foi ${game.target.word}!`
+        const speakText = personalizeSpeech(
+          `Não foi essa... A palavra que eu falei foi ${game.target.word}, {name}!`,
+          `Não foi essa... A palavra que eu falei foi ${game.target.word}!`,
+          speechName
+        )
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -162,18 +166,6 @@ export function EscuteEEncontreGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
-
-        <button
-          onClick={() => {
-            if (confirm('Quer começar com outro nome?')) {
-              useChildProfile.getState().clearProfile()
-            }
-          }}
-          className="text-xl opacity-50 active:opacity-100 px-2"
-          title="Trocar perfil"
-        >
-          ⚙️
-        </button>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 pt-6 pb-8">

@@ -7,7 +7,7 @@ import {
   getRandomDistractors, 
   WordExample 
 } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U'] as const
@@ -81,10 +81,12 @@ export function TouchLetterGame() {
       
       await getAudioManager().playSuccess()
       
-      // Fala a letra + exemplo de forma carinhosa com o nome da criança (voz principal feminina)
-      const speakText = speechName
-        ? `Muito bem, ${speechName}! ${game.currentLetter} de ${game.example.word}!`
-        : `Muito bem! ${game.currentLetter} de ${game.example.word}!`
+      // Fala a letra + exemplo de forma carinhosa (usa personalizeSpeech para limpar quando sem nome)
+      const speakText = personalizeSpeech(
+        `Muito bem, {name}! ${game.currentLetter} de ${game.example.word}!`,
+        `Muito bem! ${game.currentLetter} de ${game.example.word}!`,
+        speechName
+      )
       await getAudioManager().speakPhrase(speakText)
 
       // Celebra e avança
@@ -100,7 +102,12 @@ export function TouchLetterGame() {
 
       // Depois de um tempo, revela a resposta certa e libera (voz principal feminina)
       setTimeout(async () => {
-        await getAudioManager().speakPhrase(`A letra certa é ${game.currentLetter}${speechName ? ', ' + speechName : ''}!`)
+        const errorSpeak = personalizeSpeech(
+          `A letra certa é ${game.currentLetter}, {name}!`,
+          `A letra certa é ${game.currentLetter}!`,
+          speechName
+        )
+        await getAudioManager().speakPhrase(errorSpeak)
         
         // Libera para tentar de novo (não avança automaticamente no erro)
         setGame(prev => ({
@@ -139,19 +146,6 @@ export function TouchLetterGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
-
-        {/* Small settings button (for now allows resetting profile) */}
-        <button
-          onClick={() => {
-            if (confirm('Quer começar com outro nome?')) {
-              useChildProfile.getState().clearProfile()
-            }
-          }}
-          className="text-xl opacity-50 active:opacity-100 px-2"
-          title="Trocar perfil"
-        >
-          ⚙️
-        </button>
       </div>
 
       {/* Área principal do jogo */}

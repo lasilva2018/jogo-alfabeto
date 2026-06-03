@@ -6,7 +6,7 @@ import {
   getOddOneOutRound, 
   OddOneOutRound 
 } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState extends OddOneOutRound {
@@ -119,18 +119,6 @@ export function QualNaoPertenceGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
-
-        <button
-          onClick={() => {
-            if (confirm('Quer começar com outro nome?')) {
-              useChildProfile.getState().clearProfile()
-            }
-          }}
-          className="text-xl opacity-50 active:opacity-100 px-2"
-          title="Trocar perfil"
-        >
-          ⚙️
-        </button>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 pt-6 pb-8">

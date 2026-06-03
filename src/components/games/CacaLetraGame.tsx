@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { AVAILABLE_LETTERS } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 type Letter = string
@@ -149,18 +149,6 @@ export function CacaLetraGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
-
-        <button
-          onClick={() => {
-            if (confirm('Quer começar com outro nome?')) {
-              useChildProfile.getState().clearProfile()
-            }
-          }}
-          className="text-xl opacity-50 active:opacity-100 px-2"
-          title="Trocar perfil"
-        >
-          ⚙️
-        </button>
       </div>
 
       {/* Game Area */}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { getAudioManager } from '../../lib/audio/AudioManager'
 import { SUCCESS_AUTO_ADVANCE_MS } from '../../lib/gameConstants'
 import { getRandomWord, getRandomDistractors } from '../../data/letters'
-import { useChildProfile, getChildVocative, getChildDisplayName } from '../../stores/useChildProfile'
+import { useChildProfile, getChildVocative, getChildDisplayName, personalizeSpeech } from '../../stores/useChildProfile'
 import { AlfafaMini } from '../mascot/Alfafa'
 
 interface GameState {
@@ -73,9 +73,11 @@ export function CompletePalavraGame() {
 
       await getAudioManager().playSuccess()
 
-      const speakText = speechName
-        ? `Isso, ${speechName}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
-        : `Isso! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`
+      const speakText = personalizeSpeech(
+        `Isso, {name}! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`,
+        `Isso! ${game.word} começa com ${game.word[0]} e tem ${game.correctLetter} aqui. Muito bem!`,
+        speechName
+      )
       // Voz principal feminina - aguardamos terminar para não emendar com próxima rodada
       await getAudioManager().speakPhrase(speakText)
 
@@ -89,7 +91,11 @@ export function CompletePalavraGame() {
       await getAudioManager().playMistake()
 
       setTimeout(async () => {
-        const speakText = `A letra certa aqui é ${game.correctLetter}${speechName ? ', ' + speechName : ''}!`
+        const speakText = personalizeSpeech(
+          `A letra certa aqui é ${game.correctLetter}, {name}!`,
+          `A letra certa aqui é ${game.correctLetter}!`,
+          speechName
+        )
         // Voz principal feminina
         getAudioManager().speakPhrase(speakText)
 
@@ -139,18 +145,6 @@ export function CompletePalavraGame() {
             ❌ <span>{score.mistakes}</span>
           </div>
         </div>
-
-        <button
-          onClick={() => {
-            if (confirm('Quer começar com outro nome?')) {
-              useChildProfile.getState().clearProfile()
-            }
-          }}
-          className="text-xl opacity-50 active:opacity-100 px-2"
-          title="Trocar perfil"
-        >
-          ⚙️
-        </button>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">

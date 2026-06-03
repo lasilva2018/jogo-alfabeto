@@ -39,6 +39,20 @@ export function getChildDisplayName(profile: ChildProfile | null | { name?: stri
   return profile.gender === 'feminino' ? 'amiguinha' : 'amiguinho'
 }
 
+/**
+ * Helper para construir textos de fala personalizados.
+ * Quando há speechName (nome real), usa o template com {name}.
+ * Quando não, usa o texto sem nome.
+ *
+ * Ex: personalizeSpeech("Muito bem, {name}! Ótimo!", "Muito bem! Ótimo!", speechName)
+ */
+export function personalizeSpeech(withNameTemplate: string, withoutNameFallback: string, speechName: string): string {
+  if (speechName && speechName.length > 0) {
+    return withNameTemplate.replace(/\{name\}/g, speechName)
+  }
+  return withoutNameFallback
+}
+
 // ParentSettings is now imported/re-exported from ../types (single source of truth)
 
 interface ChildProfileState {
